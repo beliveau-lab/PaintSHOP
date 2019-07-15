@@ -1,0 +1,67 @@
+---
+title: "Filtering probes based on RefSeq IDs"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook exploring how to efficiently filter a data frame of Oligopaint probes based on which RefSeq IDs they cover.
+
+First, I will read in the probe set.
+```{r message=FALSE}
+library(tidyverse)
+
+probes <- read_delim("/Users/hershe/Documents/OligoServer/probe_dbs/refseq_hg38_DNA-FISH_DB.csv",
+                     col_names = c("chrom", "start", "stop", 
+                                   "sequence", "Tm", "on-target",
+                                   "off-target", "repeat", "max-kmer",
+                                   "refseq"),
+                     delim = "\t")
+
+```
+
+Let's take a look at the format:
+```{r}
+head(probes)
+```
+
+I want to filter based on the refseq column.
+```{r}
+example_vector <- c("NM_020309", "NM_015267", "NM_018008", "NM_000818")
+
+subset <- probes %>%
+  filter(refseq %in% example_vector)
+
+length(subset)
+```
+
+I'll look at all 10 probes.
+```{r}
+subset
+```
+
+Oh good! The length was actually with respect to columns. There are 268 probes covering the 4 example transcripts.
+
+How many probes are there per transcript?
+```{r}
+probe_counts <- subset %>%
+  group_by(refseq) %>%
+  count()
+
+probe_counts
+```
+
+This could be a useful table to provide on the Shiny app.
+
+How does a density plot of counts look?
+```{r}
+count_density <- ggplot(probe_counts, aes(x = n)) +
+  geom_density()
+
+count_density
+```
+
+This isn't very useful for 4 RefSeq IDs, but could be useful for the Shiny app.
+
+
+
+
+
