@@ -4,24 +4,30 @@
 
 library(shiny)
 library(tidyverse)
+library(vroom)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
     # load in the probe set for the specified genome assembly
     probes <- reactive({
-        read_delim(input$assembly,
-                   col_names = c("chrom", "start", "stop", 
-                                 "sequence", "Tm", "on-target",
-                                 "off-target", "repeat", "max-kmer",
-                                 "refseq"),
-                   delim = "\t")
+        # vroom makes a fast index instead of immediately loading
+        # every row
+        vroom(input$probeset,
+              col_names = c("chrom", "start", "stop", 
+                            "sequence", "Tm", "on-target",
+                            "off-target", "repeat", "max-kmer",
+                            "refseq"),
+              delim = "\t")
     })
     
     # a reactive element that is a vector of the RefSeq IDs
     # if the user inputs them manually on the UI
-    manual_accessions <- reactive({
+    manual_accessions <- eventReactive(input$manual_submit, {
         # split the manual comma separated input
-        strsplit(input$refseq_manual, ", ")
+        manual_split <- unlist(strsplit(input$refseq_manual, ", "))
+        
+        # create a dataframe w/ the accesions
+        tibble("refseq" = manual_split)
     })
     
     # read in a user's file and store it as a data frame w/
@@ -31,13 +37,24 @@ shinyServer(function(input, output) {
                  col_names = c("refseq"))        
     })
     
-    output$plot <- renderPlot({
-        plot(cars, type=input$plotType)
+    # do intersection with RefSeq
+    probe_intersect <- reactive({
+        merge(manual_accessions(), probe_DB, by="refseq")
     })
     
-    output$summary <- renderPrint({
-        summary(probes())
+    # count number of probes for each ID
+    probe_counts <- reactive({
+        probe_intersect() %>%
+            group_by(refseq) %>%
+            count()
     })
+    
+    # density plot of counts per prode
+    output$count_plot <- renderPlot({
+        ggplot(probe_counts(), aes(x = n)) +
+            geom_density()
+    })
+    
     
     output$table <- DT::renderDataTable({
         DT::datatable(head(probes()))

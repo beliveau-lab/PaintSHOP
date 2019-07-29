@@ -1,0 +1,56 @@
+---
+title: "Probe Filtering Tinkering"
+output: html_notebook
+---
+
+I want to figure out how I will use the manually entered refseqs for filtering, in addition to the accesion files that could be uploaded.
+```{r}
+library(tidyverse)
+```
+
+```{r}
+# here is an example manual input
+manual_input <- "NM_020309, NM_015267, NM_018008, NM_000818"
+manual_input
+```
+
+I want to split this, and possibly convert it into a data frame.
+```{r}
+manual_input_split <- unlist(strsplit(manual_input, ", "))
+manual_input_split
+```
+
+I could use this list to make a data frame equivalent to how I want to parse in the accesion file.
+```{r}
+accession_df <- tibble("refseq" = manual_input_split)
+accession_df
+```
+
+Now can I use an intersection with this type of data frame and my probe DB for filtering?
+```{r message=FALSE}
+#read in my DB
+probe_DB <- vroom("/Users/hershe/Documents/OligoServer/probe_dbs/refseq_hg38_DNA-FISH_DB.csv",
+                  col_names = c("chrom", "start", "stop", 
+                                "sequence", "Tm", "on-target",
+                                "off-target", "repeat", "max-kmer",
+                                "refseq"),
+                  delim = "\t")
+
+head(probe_DB)
+```
+
+Let's see how a merge works:
+
+```{r}
+probe_intersect <- merge(accession_df, probe_DB, by="refseq")
+```
+
+Pretty fast.
+```{r}
+head(probe_intersect)
+```
+
+
+
+
+
