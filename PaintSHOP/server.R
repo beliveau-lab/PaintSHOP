@@ -9,15 +9,28 @@ library(vroom)
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
     # load in the probe set for the specified genome assembly
-    probes <- reactive({
+    probes <- eventReactive(c(input$manual_submit,
+                              input$refseq_file,
+                              input$filter), {
         # vroom makes a fast index instead of immediately loading
         # every row
-        vroom(input$probeset,
-              col_names = c("chrom", "start", "stop", 
-                            "sequence", "Tm", "on-target",
-                            "off-target", "repeat", "max-kmer",
-                            "refseq"),
-              delim = "\t")
+        df <- vroom(input$probeset,
+                    col_names = c("chrom", "start", "stop", 
+                                  "sequence", "Tm", "on_target",
+                                  "off_target", "repeat_seq", "max_kmer",
+                                  "refseq"),
+                    delim = "\t")
+        
+        if(input$repeat_seq) {
+            df %>%
+                filter(off_target <= input$off_target,
+                       max_kmer <= input$max_kmer)
+        } else {
+            df %>%
+                filter(repeat_seq != 1,
+                       off_target <= input$off_target,
+                       max_kmer <= input$max_kmer)
+        }
     })
     
     # a reactive element that is a vector of the RefSeq IDs
@@ -39,8 +52,10 @@ shinyServer(function(input, output) {
     
     # do intersection with RefSeq
     probe_intersect <- reactive({
-        merge(manual_accessions(), probe_DB, by="refseq")
+        merge(manual_accessions(), probes(), by="refseq")
     })
+    
+    #probe_intersect <- reactiveVal(merge(manual_accessions(), probe_DB, by="refseq"))
     
     # count number of probes for each ID
     probe_counts <- reactive({
@@ -52,11 +67,15 @@ shinyServer(function(input, output) {
     # density plot of counts per prode
     output$count_plot <- renderPlot({
         ggplot(probe_counts(), aes(x = n)) +
-            geom_density()
+            geom_density() +
+            xlab("Number of probes per transcript")
     })
     
+    output$intersect_table <- DT::renderDataTable({
+        DT::datatable(probe_intersect())
+    })
     
-    output$table <- DT::renderDataTable({
+    output$summary_table <- DT::renderDataTable({
         DT::datatable(head(probes()))
     })
 

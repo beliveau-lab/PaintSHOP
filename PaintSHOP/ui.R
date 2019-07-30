@@ -44,9 +44,9 @@ shinyUI(fluidPage(
                    "..."),
             tags$hr(),
             tags$h3("Probe Settings"),
-            radioButtons("repeat", "Repeat:",
-                         c("allowed" = 1, "none" = 0),
-                         selected = 0),
+            radioButtons("repeat_seq", "Repeat:",
+                         c("allowed" = TRUE, "none" = FALSE),
+                         selected = FALSE),
             sliderInput("off_target", "Off-Target Score:",
                         min = 0, max = 1000,
                         value = 200),
@@ -63,13 +63,14 @@ shinyUI(fluidPage(
             
           ),
           mainPanel(
-            plotOutput("count_plot")
+            plotOutput("count_plot"),
+            DT::dataTableOutput("intersect_table")
             
           )
         )
       ),
       tabPanel("Summary",
-        DT::dataTableOutput("table")
+        DT::dataTableOutput("summary_table")
       )
     )
     
