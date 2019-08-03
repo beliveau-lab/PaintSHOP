@@ -1,0 +1,83 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+I want to determine how to retrieve the probes covering genomic coordinates instead of RefSeq IDs, in order to provide both functionalites to users.
+
+First, I will read in the probe set.
+```{r message=FALSE}
+library(tidyverse)
+
+probes <- read_delim("/Users/hershe/Documents/OligoServer/probe_dbs/refseq_hg38_DNA-FISH_DB.csv",
+                     col_names = c("chrom", "start", "stop", 
+                                   "sequence", "Tm", "on-target",
+                                   "off-target", "repeat", "max-kmer",
+                                   "refseq"),
+                     delim = "\t")
+
+```
+
+Looking at the probes:
+```{r}
+head(probes)
+```
+
+Even though I am used this data set, in reality I will be loading in the complete probe set, not the intersect DB. It will not have the Refseq ID column, so I'll drop it.
+```{r}
+probes <- select(probes, -c(refseq))
+```
+
+This should leave me with what I care about.
+```{r}
+head(probes)
+```
+
+I'll make a sample coordinate data frame based on how I would on the server:
+```{r}
+coord_input <- "chr10:26216307-26304562, chr12:111034165-111350554, chr3:62369681-62373550, chr10:26216307-26304562, ..."
+
+coord_split <- unlist(strsplit(coord_input, ", "))
+
+chrom <- lapply(coord_split, function(x) unlist(strsplit(x, ":"))[1])
+
+coords <- lapply(coord_split, function(x) unlist(strsplit(x, ":"))[2])
+
+start <- lapply(coords, function(x) unlist(strsplit(x, "-"))[1])
+stop <- lapply(coords, function(x) unlist(strsplit(x, "-"))[2])
+
+coord_df <- tibble("chrom" = unlist(chrom),
+                   "start" = unlist(start),
+                   "stop" = unlist(stop))
+
+coord_df <- coord_df %>% drop_na()
+
+# convert start stop to integers
+coord_df$start <- as.numeric(coord_df$start)
+coord_df$stop <- as.numeric(coord_df$stop)
+
+head(coord_df)
+```
+
+Now I want to generate a data frame with the probes that fall within each of these regions.
+```{r}
+library(tidygenomics)
+
+intersect_df <- genome_intersect(probes, coord_df, by = c("chrom", "start", "stop"))
+
+head(intersect_df)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
