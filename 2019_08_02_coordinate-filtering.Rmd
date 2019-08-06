@@ -68,7 +68,14 @@ intersect_df <- genome_intersect(probes, coord_df, by = c("chrom", "start", "sto
 head(intersect_df)
 ```
 
+Awesome. Now I want to reorder the columns.
+```{r}
+# reorder columns after intersect
+intersect_df <- intersect_df %>%
+  select(chrom, start, stop, everything())
 
+head(intersect_df)
+```
 
 
 
