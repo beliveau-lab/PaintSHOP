@@ -61,12 +61,29 @@ head(coord_df)
 
 Now I want to generate a data frame with the probes that fall within each of these regions.
 ```{r}
-library(tidygenomics)
+# library(tidygenomics)
+# 
+# intersect_df <- genome_intersect(probes, coord_df, by = c("chrom", "start", "stop"))
+# 
+# head(intersect_df)
+```
 
-intersect_df <- genome_intersect(probes, coord_df, by = c("chrom", "start", "stop"))
+After looking at the documentation, that actually isn't the function or package that I want. Here is what I want:
+```{r}
+library(fuzzyjoin)
+
+intersect_df <- fuzzyjoin::genome_join(probes, coord_df,
+                                       by = c("chrom", "start", "stop"),
+                                       mode = "left",
+                                       type = c("within", "equal"))
 
 head(intersect_df)
 ```
+
+
+
+
+
 
 Awesome. Now I want to reorder the columns.
 ```{r}
