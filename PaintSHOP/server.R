@@ -144,8 +144,6 @@ shinyServer(function(input, output) {
                              "start",
                              "stop"))        
     }
-    
-    
   })
   
   # do intersection with coordinates

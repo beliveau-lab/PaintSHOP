@@ -118,8 +118,73 @@ shinyUI(fluidPage(
       tabPanel("Append Sequences",
         sidebarLayout(
          sidebarPanel(
-           # side bar for appending
-            
+           # determine which design tab was used
+           radioButtons("design_scheme", "Design Scheme:",
+                        c("RNA Probe Design" = TRUE, "DNA Probe Design" = FALSE),
+                        selected = TRUE),
+           tags$hr(),
+           ###########################################################################
+           radioButtons("fpu_choice", label = h3("5' Universal Sequence"),
+                        c("Append" = TRUE, "None" = FALSE),
+                        selected = FALSE),
+           radioButtons("fpu_append_scheme", "Format:",
+                        c("Same for all probes" = 1, 
+                          "Unique for each target" = 2,
+                          "Custom ranges" = 3),
+                        selected = 1),
+           textInput("fpu_custom_ranges", label = "Custom Ranges (optional)", value = "1-100, 200-300, 300-400, ..."),
+           selectInput("fpu_sequence_select", label = "Select Sequence Set", 
+                       choices = list("PaintSHOP 5' Universal Set" = 1, "Custom Set" = 2), 
+                       selected = 1),
+           fileInput("fpu_custom_file", label = "Upload Custom Set (optional)", 
+                     multiple = FALSE, accept = NULL,
+                     width = NULL, buttonLabel = "Browse...",
+                     placeholder = "No file selected"),
+           tags$hr(),
+           ###########################################################################
+           radioButtons("fpb_choice", label = h3("5' Bridge Sequence"),
+                        c("Append" = TRUE, "None" = FALSE),
+                        selected = FALSE),
+           radioButtons("fpb_append_scheme", "Format:",
+                        c("Same for all probes" = 1, 
+                          "Unique for each target" = 2,
+                          "Custom ranges" = 3),
+                        selected = 1),
+           textInput("fpb_custom_ranges", label = "Custom Ranges (optional)", value = "1-100, 200-300, 300-400, ..."),
+           selectInput("fpb_sequence_select", label = "Select Sequence Set", 
+                       choices = list("PaintSHOP 5' Bridge Set" = 1, "Custom Set" = 2), 
+                       selected = 1),
+           fileInput("fpb_custom_file", label = "Upload Custom Set (optional)", 
+                     multiple = FALSE, accept = NULL,
+                     width = NULL, buttonLabel = "Browse...",
+                     placeholder = "No file selected"),
+           tags$hr(),
+           ###########################################################################
+           radioButtons("fpp_choice", label = h3("5' Primer Sequence"),
+                        c("Append" = TRUE, "None" = FALSE),
+                        selected = FALSE),
+           radioButtons("fpp_append_scheme", "Format:",
+                        c("Same for all probes" = 1, 
+                          "Unique for each target" = 2,
+                          "Custom ranges" = 3),
+                        selected = 1),
+           textInput("fpp_custom_ranges", label = "Custom Ranges (optional)", value = "1-100, 200-300, 300-400, ..."),
+           selectInput("fpp_sequence_select", label = "Select Sequence Set", 
+                       choices = list("PaintSHOP 5' Primer Set" = 1, "Custom Set" = 2), 
+                       selected = 1),
+           fileInput("fpp_custom_file", label = "Upload Custom Set (optional)", 
+                     multiple = FALSE, accept = NULL,
+                     width = NULL, buttonLabel = "Browse...",
+                     placeholder = "No file selected"),
+           tags$hr()
+           ###########################################################################
+           
+           # 1) I want to build out the rest of the options
+           
+           # 2) I also want to try to use shinyjs to be able to toggle hiding/showing
+           #    all of the options for the different sequences.
+          
+          
             
             
              
