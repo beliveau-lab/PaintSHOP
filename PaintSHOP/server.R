@@ -172,8 +172,146 @@ shinyServer(function(input, output) {
     DT::datatable(coord_intersect())
   })
   
+  ##############################################
+  # Appending
+  ##############################################
   
+  # toggle 5' universal primer append options
+  observeEvent(input$fpu_choice, {
+    if(input$fpu_choice) {
+      shinyjs::show("fpu_append_scheme")
+      shinyjs::show("fpu_custom_ranges")
+      shinyjs::show("fpu_sequence_select")
+      shinyjs::show("fpu_custom_file")
+    } else {
+      shinyjs::hide("fpu_append_scheme")
+      shinyjs::hide("fpu_custom_ranges")
+      shinyjs::hide("fpu_sequence_select")
+      shinyjs::hide("fpu_custom_file")
+    }
+  })
   
+  # toggle 5' bridge sequence append options
+  observeEvent(input$fpb_choice, {
+    if(input$fpb_choice) {
+      shinyjs::show("fpb_append_scheme")
+      shinyjs::show("fpb_custom_ranges")
+      shinyjs::show("fpb_sequence_select")
+      shinyjs::show("fpb_custom_file")
+    } else {
+      shinyjs::hide("fpb_append_scheme")
+      shinyjs::hide("fpb_custom_ranges")
+      shinyjs::hide("fpb_sequence_select")
+      shinyjs::hide("fpb_custom_file")
+    }
+  })
+  
+  # toggle 5' primer append options
+  observeEvent(input$fpp_choice, {
+    if(input$fpp_choice) {
+      shinyjs::show("fpp_append_scheme")
+      shinyjs::show("fpp_custom_ranges")
+      shinyjs::show("fpp_sequence_select")
+      shinyjs::show("fpp_custom_file")
+    } else {
+      shinyjs::hide("fpp_append_scheme")
+      shinyjs::hide("fpp_custom_ranges")
+      shinyjs::hide("fpp_sequence_select")
+      shinyjs::hide("fpp_custom_file")
+    }
+  })
+  
+  # toggle 3' primer append options
+  observeEvent(input$tpp_choice, {
+    if(input$tpp_choice) {
+      shinyjs::show("tpp_append_scheme")
+      shinyjs::show("tpp_custom_ranges")
+      shinyjs::show("tpp_sequence_select")
+      shinyjs::show("tpp_custom_file")
+    } else {
+      shinyjs::hide("tpp_append_scheme")
+      shinyjs::hide("tpp_custom_ranges")
+      shinyjs::hide("tpp_sequence_select")
+      shinyjs::hide("tpp_custom_file")
+    }
+  })
+  
+  # toggle 3' bridge sequence append options
+  observeEvent(input$tpb_choice, {
+    if(input$tpb_choice) {
+      shinyjs::show("tpb_append_scheme")
+      shinyjs::show("tpb_custom_ranges")
+      shinyjs::show("tpb_sequence_select")
+      shinyjs::show("tpb_custom_file")
+    } else {
+      shinyjs::hide("tpb_append_scheme")
+      shinyjs::hide("tpb_custom_ranges")
+      shinyjs::hide("tpb_sequence_select")
+      shinyjs::hide("tpb_custom_file")
+    }
+  })
+  
+  # toggle 3' universal primer append options
+  observeEvent(input$tpu_choice, {
+    if(input$tpu_choice) {
+      shinyjs::show("tpu_append_scheme")
+      shinyjs::show("tpu_custom_ranges")
+      shinyjs::show("tpu_sequence_select")
+      shinyjs::show("tpu_custom_file")
+    } else {
+      shinyjs::hide("tpu_append_scheme")
+      shinyjs::hide("tpu_custom_ranges")
+      shinyjs::hide("tpu_sequence_select")
+      shinyjs::hide("tpu_custom_file")
+    }
+  })
+  
+  observeEvent(input$tp_appending_choice, {
+    if(input$tp_appending_choice == 1) {
+      # show all SABER options
+      shinyjs::show("saber_append_scheme")
+      shinyjs::show("saber_custom_ranges")
+      
+      # hide all other 3' options
+      shinyjs::hide("tpp_choice")
+      shinyjs::hide("tpp_choice_hr")
+      
+      shinyjs::hide("tpb_choice")
+      shinyjs::hide("tpb_choice_hr")
+      
+      shinyjs::hide("tpu_choice")
+      shinyjs::hide("tpu_choice_hr")
+      
+    } else if(input$tp_appending_choice == 2) {
+      # hide all SABER options
+      shinyjs::hide("saber_append_scheme")
+      shinyjs::hide("saber_custom_ranges")
+      
+      # show all other 3' options
+      shinyjs::show("tpp_choice")
+      shinyjs::show("tpp_choice_hr")
+      
+      shinyjs::show("tpb_choice")
+      shinyjs::show("tpb_choice_hr")
+      
+      shinyjs::show("tpu_choice")
+      shinyjs::show("tpu_choice_hr")
+    } else {
+      # hide all SABER options
+      shinyjs::hide("saber_append_scheme")
+      shinyjs::hide("saber_custom_ranges")
+      
+      # hide all other 3' options
+      shinyjs::hide("tpp_choice")
+      shinyjs::hide("tpp_choice_hr")
+      
+      shinyjs::hide("tpb_choice")
+      shinyjs::hide("tpb_choice_hr")
+      
+      shinyjs::hide("tpu_choice")
+      shinyjs::hide("tpu_choice_hr")
+    }
+  })
   
   
   
