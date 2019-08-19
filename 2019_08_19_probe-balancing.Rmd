@@ -76,5 +76,5 @@ probes %>%
   mutate(target = str_c(chrom, start))
 ```
 
-
+I combine chrom.y and start.y to group based on the target, and then do the same type of filter as before.
 

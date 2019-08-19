@@ -209,9 +209,9 @@ shinyServer(function(input, output) {
       targets_less <- unique(probes_less$target)
       
       probes_add_back <- coord_intersect() %>%
-        group_by(chrom.y, start.y) %>%
         mutate(target = str_c(chrom.y, start.y)) %>%
         filter(target %in% targets_less) %>%
+        group_by(chrom.y, start.y) %>%
         arrange(off_target, .by_group = TRUE) %>%
         slice(1:input$coord_balance_goal)
       
