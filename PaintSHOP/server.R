@@ -62,9 +62,36 @@ shinyServer(function(input, output) {
     }
   })
   
+  # code for balancing probe set
+  probe_intersect_final <- reactive({
+    if(input$balance_set) {
+      probes_greater_or_eq <- probe_intersect_filter() %>%
+        group_by(refseq) %>%
+        filter(n() >= input$balance_goal) %>%
+        arrange(off_target, .by_group = TRUE) %>%
+        slice(1:input$balance_goal)
+      
+      probes_less <- probe_intersect_filter() %>%
+        group_by(refseq) %>%
+        filter(n() < input$balance_goal) 
+      
+      targets_less <- unique(probes_less$refseq)
+      
+      probes_add_back <- probe_intersect() %>%
+        filter(refseq %in% targets_less) %>%
+        group_by(refseq) %>%
+        arrange(off_target, .by_group = TRUE) %>%
+        slice(1:input$balance_goal)
+      
+      bind_rows(probes_greater_or_eq, probes_add_back)
+    } else {
+      probe_intersect_filter()
+    }
+  })
+  
   # count number of probes for each ID
   probe_counts <- reactive({
-    probe_intersect_filter() %>%
+    probe_intersect_final() %>%
       group_by(refseq) %>%
       count()
   })
@@ -77,7 +104,7 @@ shinyServer(function(input, output) {
   })
   
   output$intersect_table <- DT::renderDataTable({
-    DT::datatable(probe_intersect_filter())
+    DT::datatable(probe_intersect_final())
   })
   
   output$summary_table <- DT::renderDataTable({
@@ -164,9 +191,39 @@ shinyServer(function(input, output) {
     }
   })
   
+  # code for balancing probe set
+  coord_intersect_final <- reactive({
+    if(input$coord_balance_set) {
+      probes_greater_or_eq <- coord_intersect_filter() %>%
+        group_by(chrom.y, start.y) %>%
+        mutate(target = str_c(chrom.y, start.y)) %>%
+        filter(n() >= input$coord_balance_goal) %>%
+        arrange(off_target, .by_group = TRUE) %>%
+        slice(1:input$coord_balance_goal)
+      
+      probes_less <- coord_intersect_filter() %>%
+        group_by(chrom.y, start.y) %>%
+        filter(n() < input$coord_balance_goal) %>%
+        mutate(target = str_c(chrom.y, start.y))
+      
+      targets_less <- unique(probes_less$target)
+      
+      probes_add_back <- coord_intersect() %>%
+        group_by(chrom.y, start.y) %>%
+        mutate(target = str_c(chrom.y, start.y)) %>%
+        filter(target %in% targets_less) %>%
+        arrange(off_target, .by_group = TRUE) %>%
+        slice(1:input$coord_balance_goal)
+      
+      bind_rows(probes_greater_or_eq, probes_add_back)
+    } else {
+      coord_intersect_filter()
+    }
+  })
+  
   # count number of probes for each ID
   coord_counts <- reactive({
-    coord_intersect_filter() %>%
+    coord_intersect_final() %>%
       group_by(chrom.y, start.y) %>%
       count()
   })
@@ -179,7 +236,7 @@ shinyServer(function(input, output) {
   })
   
   output$coord_intersect_table <- DT::renderDataTable({
-    DT::datatable(coord_intersect_filter())
+    DT::datatable(coord_intersect_final())
   })
   
   observeEvent(input$coord_restore_default, {

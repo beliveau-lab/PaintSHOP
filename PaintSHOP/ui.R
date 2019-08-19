@@ -48,7 +48,7 @@ shinyUI(fluidPage(
                    tags$br(),
                    "..."),
             tags$hr(),
-            tags$h3("Advanced Probe Settings"),
+            tags$h3("Advanced Probe Settings (optional)"),
             radioButtons("repeat_seq", "Repeat:",
                          c("allowed" = TRUE, "none" = FALSE),
                          selected = FALSE),
@@ -58,7 +58,15 @@ shinyUI(fluidPage(
             sliderInput("max_kmer", "Max K-mer Count:",
                         min = 0, max = 255,
                         value = 5),
-            actionButton("restore_default", label = "Restore Default Parameters")
+            actionButton("restore_default", label = "Restore Default Parameters"),
+            tags$hr(),
+            tags$h3("Balance Set (optional)"),
+            sliderInput("balance_goal", "Number of probes per target:",
+                        min = 15, max = 60,
+                        value = 30),
+            radioButtons("balance_set", "enable:",
+                         c("on" = TRUE, "off" = FALSE),
+                         selected = FALSE)
           ),
           mainPanel(
             plotOutput("count_plot"),
@@ -98,7 +106,7 @@ shinyUI(fluidPage(
                   tags$br(),
                   "..."),
            tags$hr(),
-           tags$h3("Advanced Probe Settings"),
+           tags$h3("Advanced Probe Settings (optional)"),
            radioButtons("repeat_seq_coord", "Repeat:",
                         c("allowed" = TRUE, "none" = FALSE),
                         selected = FALSE),
@@ -108,7 +116,15 @@ shinyUI(fluidPage(
            sliderInput("max_kmer_coord", "Max K-mer Count:",
                        min = 0, max = 255,
                        value = 5),
-           actionButton("coord_restore_default", label = "Restore Default Parameters")
+           actionButton("coord_restore_default", label = "Restore Default Parameters"),
+           tags$hr(),
+           tags$h3("Balance Set (optional)"),
+           sliderInput("coord_balance_goal", "Number of probes per target:",
+                       min = 15, max = 1000,
+                       value = 100),
+           radioButtons("coord_balance_set", "enable:",
+                        c("on" = TRUE, "off" = FALSE),
+                        selected = FALSE)
          ),
          mainPanel(
            plotOutput("coord_count_plot"),
