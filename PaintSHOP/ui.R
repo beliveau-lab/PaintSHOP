@@ -58,7 +58,7 @@ shinyUI(fluidPage(
             sliderInput("max_kmer", "Max K-mer Count:",
                         min = 0, max = 255,
                         value = 5),
-            actionButton("filter", label = "Filter")
+            actionButton("restore_default", label = "Restore Default Parameters")
           ),
           mainPanel(
             plotOutput("count_plot"),
@@ -108,7 +108,7 @@ shinyUI(fluidPage(
            sliderInput("max_kmer_coord", "Max K-mer Count:",
                        min = 0, max = 255,
                        value = 5),
-           actionButton("coord_filter", label = "Filter")
+           actionButton("coord_restore_default", label = "Restore Default Parameters")
          ),
          mainPanel(
            plotOutput("coord_count_plot"),

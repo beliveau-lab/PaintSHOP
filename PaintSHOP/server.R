@@ -15,8 +15,7 @@ shinyServer(function(input, output) {
   
   # load in the probe set for the specified genome assembly
   probes_refseq <- eventReactive(c(input$refseq_submit,
-                                   input$refseq_file,
-                                   input$filter), {
+                                   input$refseq_file), {
     # vroom makes a fast index instead of immediately loading
     # every row
     df <- vroom(input$probeset,
@@ -25,17 +24,6 @@ shinyServer(function(input, output) {
                              "off_target", "repeat_seq", "max_kmer",
                              "refseq"),
                delim = "\t")
-    
-    if(input$repeat_seq) {
-     df %>%
-       filter(off_target <= input$off_target,
-              max_kmer <= input$max_kmer)
-    } else {
-     df %>%
-       filter(repeat_seq != 1,
-              off_target <= input$off_target,
-              max_kmer <= input$max_kmer)
-    }
   })
   
   # a reactive element that is a vector of the RefSeq IDs
@@ -60,9 +48,23 @@ shinyServer(function(input, output) {
     merge(refseq_accessions(), probes_refseq(), by="refseq")
   })
   
+  # filter intersect based on the currently selected advanced settings
+  probe_intersect_filter <- reactive({
+    if(input$repeat_seq) {
+      probe_intersect() %>%
+        filter(off_target <= input$off_target,
+               max_kmer <= input$max_kmer)
+    } else {
+      probe_intersect() %>%
+        filter(repeat_seq != 1,
+               off_target <= input$off_target,
+               max_kmer <= input$max_kmer)
+    }
+  })
+  
   # count number of probes for each ID
   probe_counts <- reactive({
-    probe_intersect() %>%
+    probe_intersect_filter() %>%
       group_by(refseq) %>%
       count()
   })
@@ -75,11 +77,17 @@ shinyServer(function(input, output) {
   })
   
   output$intersect_table <- DT::renderDataTable({
-    DT::datatable(probe_intersect())
+    DT::datatable(probe_intersect_filter())
   })
   
   output$summary_table <- DT::renderDataTable({
     DT::datatable(head(probes_refseq()))
+  })
+  
+  observeEvent(input$restore_default, {
+    shinyjs::reset("repeat_seq")
+    shinyjs::reset("off_target")
+    shinyjs::reset("max_kmer")
   })
   
   ##############################################
@@ -88,8 +96,7 @@ shinyServer(function(input, output) {
   
   # load in the probe set for the specified genome assembly
   probes_full <- eventReactive(c(input$coord_submit,
-                                 input$coord_file,
-                                 input$coord_filter), {
+                                 input$coord_file), {
     # vroom makes a fast index instead of immediately loading
     # every row
     df <- vroom(input$probeset_coord,
@@ -97,17 +104,6 @@ shinyServer(function(input, output) {
                              "sequence", "Tm", "on_target",
                              "off_target", "repeat_seq", "max_kmer"),
                delim = "\t")
-    
-    if(input$repeat_seq_coord) {
-     df %>%
-       filter(off_target <= input$off_target_coord,
-              max_kmer <= input$max_kmer_coord)
-    } else {
-     df %>%
-       filter(repeat_seq != 1,
-              off_target <= input$off_target_coord,
-              max_kmer <= input$max_kmer_coord)
-    }
   })
   
   # a reactive element that is a vector of the RefSeq IDs
@@ -154,9 +150,23 @@ shinyServer(function(input, output) {
                            type = "within")
   })
   
+  # filter intersect based on the currently selected advanced settings
+  coord_intersect_filter <- reactive({
+    if(input$repeat_seq_coord) {
+      coord_intersect() %>%
+        filter(off_target <= input$off_target_coord,
+               max_kmer <= input$max_kmer_coord)
+    } else {
+      coord_intersect() %>%
+        filter(repeat_seq != 1,
+               off_target <= input$off_target_coord,
+               max_kmer <= input$max_kmer_coord)
+    }
+  })
+  
   # count number of probes for each ID
   coord_counts <- reactive({
-    coord_intersect() %>%
+    coord_intersect_filter() %>%
       group_by(chrom.y, start.y) %>%
       count()
   })
@@ -169,7 +179,13 @@ shinyServer(function(input, output) {
   })
   
   output$coord_intersect_table <- DT::renderDataTable({
-    DT::datatable(coord_intersect())
+    DT::datatable(coord_intersect_filter())
+  })
+  
+  observeEvent(input$coord_restore_default, {
+    shinyjs::reset("repeat_seq_coord")
+    shinyjs::reset("off_target_coord")
+    shinyjs::reset("max_kmer_coord")
   })
   
   ##############################################
