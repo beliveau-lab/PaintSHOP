@@ -100,7 +100,13 @@ for (i in 1:length(refseq_ids)) {
 appended_df = bind_rows(my_data)
 ```
 
+The following is a quick test of manipulating the 168.primers file from Brian.
+```{r}
+primers <- read_tsv("./appending/168.primers.txt", col_names = c("ID",
+                                                                 "primer"))
 
+head(primers['primer'])
+```
 
 
 

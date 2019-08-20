@@ -386,7 +386,47 @@ shinyServer(function(input, output) {
     }
   })
   
-  
+  # response to user clicking append button in tab
+  probes_appended <- eventReactive(input$append_submit, {
+    # raw probes are either RNA or DNA
+    if(input$design_scheme) {
+      raw_probes <- probe_intersect_final()
+    } else {
+      raw_probes <- coord_intersect_final()
+    }
+    
+    # work from inside out
+    if(input$fpp_choice) {
+      if(input$fpp_append_scheme == 1) {
+        if(input$fpp_sequence_select == 1) {
+          # this path will need to change
+          fpp_primer_seqs <- read_tsv("./appending/168.primers.txt")
+          
+          # determine if there are too few 5' primers to have a unique
+          # primer for each row
+          if(input$design_scheme) {
+            if(nrow(fpp_primer_seqs) < nrow(refseq_accessions())) {
+              stop("Error: There are less unique 5' primers than targets.")
+            }
+          } else {
+            if(nrow(fpp_primer_seqs) < nrow(coordinates())) {
+              stop("Error: There are less unique 5' primers than targets.")
+            }
+          }
+          
+          #
+          
+          
+        }
+      }
+    }
+    
+    
+    
+    
+    
+    
+  })
   
   
   

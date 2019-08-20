@@ -273,13 +273,9 @@ shinyUI(fluidPage(
                             multiple = FALSE, accept = NULL,
                             width = NULL, buttonLabel = "Browse...",
                             placeholder = "No file selected")),
-           hidden(tags$hr(id = "tpu_choice_hr"))
+           hidden(tags$hr(id = "tpu_choice_hr")),
            ###########################################################################
-          
-          
-            
-            
-             
+           actionButton("append_submit", label = "Append")
          ),
          mainPanel(
            # main panel for appending
