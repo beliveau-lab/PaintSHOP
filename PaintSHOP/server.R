@@ -220,7 +220,8 @@ shinyServer(function(input, output) {
       
       bind_rows(probes_greater_or_eq, probes_add_back)
     } else {
-      coord_intersect_filter()
+      coord_intersect_filter() %>%
+        mutate(target = str_c(chrom.y, start.y))
     }
   })
   
@@ -391,19 +392,20 @@ shinyServer(function(input, output) {
   
   # response to user clicking append button in tab
   probes_appended <- eventReactive(input$append_submit, {
-    # raw probes are either RNA or DNA
+    # base probes are either RNA or DNA
     if(input$design_scheme) {
       # RNA
-      raw_probes <- probe_intersect_final()
+      appended <- probe_intersect_final()
     } else {
       # DNA
-      raw_probes <- coord_intersect_final()
+      appended <- coord_intersect_final()
     }
     
     # work from inside out, starting with 5' inner primer
     if(input$fpp_choice) {
       # load either the PaintSHOP 5' primer set or the custom set provided
       if(input$fpp_sequence_select == 1) {
+        # file path will need to be changed to correct file
         fpp_seqs <- read_tsv("../appending/168.primers.txt", 
                              col_names = c("ID", "primer"))
       } else {
@@ -412,22 +414,22 @@ shinyServer(function(input, output) {
       }
       
       if(input$fpp_append_scheme == 1) {
-        fpp_appended <- append_same(raw_probes, fpp_seqs)
+        appended <- append_same(appended, fpp_seqs)
       } else if(input$fpp_append_scheme == 2) {
         if(input$design_scheme) {
-          fpp_appended <- append_unique(raw_probes, fpp_seqs)
+          appended <- append_unique(appended, fpp_seqs)
         } else {
-          fpp_appended <- append_unique(raw_probes, fpp_seq, rna = FALSE)
+          appended <- append_unique(appended, fpp_seqs, rna = FALSE)
         }
       } else {
         # create a vector of range strings from the input box in UI
         custom_ranges <- str_split(input$fpp_custom_ranges, ", ")[[1]]
         
-        fpp_appended <- append_custom(raw_probes, fpp_seqs, custom_ranges)
+        appended <- append_custom(appended, fpp_seqs, custom_ranges)
       }
     }
 
-    fpp_appended %>%
+    appended %>%
       select(everything())
   })
   
