@@ -129,7 +129,7 @@ append_custom <- function(probes, sequences, input_ranges, left = TRUE) {
 
 # function that handles the full append operation for a given sequence
 append_handler <- function(appended, choice, sequence_select, custom_file_path, 
-                           append_scheme, design_scheme, custom_ranges) {
+                           append_scheme, design_scheme, custom_ranges, left = TRUE) {
   
   if(choice) {
     # load either the PaintSHOP 5' primer set or the custom set provided
@@ -143,18 +143,18 @@ append_handler <- function(appended, choice, sequence_select, custom_file_path,
     }
     
     if(append_scheme == 1) {
-      appended <- append_same(appended, fpp_seqs)
+      appended <- append_same(appended, fpp_seqs, left = left)
     } else if(append_scheme == 2) {
       if(design_scheme) {
-        appended <- append_unique(appended, fpp_seqs)
+        appended <- append_unique(appended, fpp_seqs, left = left)
       } else {
-        appended <- append_unique(appended, fpp_seqs, rna = FALSE)
+        appended <- append_unique(appended, fpp_seqs, rna = FALSE, left = left)
       }
     } else {
       # create a vector of range strings from the input box in UI
       custom_ranges <- str_split(custom_ranges, ", ")[[1]]
       
-      appended <- append_custom(appended, fpp_seqs, custom_ranges)
+      appended <- append_custom(appended, fpp_seqs, custom_ranges, left = left)
     }
   }
   
