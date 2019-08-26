@@ -7,6 +7,9 @@ library(tidyverse)
 library(vroom)
 library(fuzzyjoin)
 
+# load appending functions
+source("helpers.R")
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   ##############################################
@@ -386,74 +389,32 @@ shinyServer(function(input, output) {
     }
   })
   
-  # # response to user clicking append button in tab
-  # probes_appended <- eventReactive(input$append_submit, {
-  #   # raw probes are either RNA or DNA
-  #   if(input$design_scheme) {
-  #     rna_probes <- probe_intersect_final()
-  #   } else {
-  #     dna_probes <- coord_intersect_final()
-  #   }
-  #   
-  #   # work from inside out
-  #   if(input$fpp_choice) {
-  #     if(input$fpp_append_scheme == 1) {
-  #       if(input$fpp_sequence_select == 1) {
-  #         # this path will need to change
-  #         fpp_primer_file <- read_tsv("./appending/168.primers.txt",
-  #                                     col_names = c("ID",
-  #                                                   "primer"))
-  #         
-  #         fpp_primer_seqs <- unique(fpp_primer_file$primer)
-  #         
-  #         # determine if there are too few 5' primers to have a unique
-  #         # primer for each row
-  #         if(input$design_scheme) {
-  #           if(nrow(fpp_primer_seqs) < nrow(refseq_accessions())) {
-  #             stop("Error: There are less unique 5' primers than targets.")
-  #           }
-  #         } else {
-  #           if(nrow(fpp_primer_seqs) < nrow(coordinates())) {
-  #             stop("Error: There are less unique 5' primers than targets.")
-  #           }
-  #         }
-  #         
-  #         # add unique 5' primer to each target
-  #         if(input$design_scheme) {
-  #           refseq_targets <- unique(rna_probes$refseq)
-  #           
-  #           appended_probes <- list()
-  #           
-  #           for (i in 1:length(refseq_targets)) {
-  #             appended_probes[[i]] = rna_probes %>%
-  #               filter(refseq == refseq_targets[i]) %>%
-  #               mutate(sequence = str_c(fpp_primer_seqs[i], sequence), sep = "TTT")
-  #           }
-  #           
-  #           rna_probes <- bind_rows(appended_probes)
-  #         } else {
-  #           coord_targets <- unique(dna_probes$target)
-  #           
-  #           appended_probes <- list()
-  #           
-  #           for (i in 1:length(coord_targets)) {
-  #             appended_probes[[i]] = dna_probes %>%
-  #               filter(refseq == coord_targets[i]) %>%
-  #               mutate(sequence = str_c(fpp_primer_seqs[i], sequence))
-  #           }
-  #           
-  #           dna_probes <- bind_rows(appended_probes)
-  #         }
-  #       }
-  #     }
-  #   }
-  #   
-  #   
-  #   
-  #   
-  #   
-  #   
-  # })
+  # response to user clicking append button in tab
+  probes_appended <- eventReactive(input$append_submit, {
+    # raw probes are either RNA or DNA
+    if(input$design_scheme) {
+      # RNA
+      raw_probes <- probe_intersect_final()
+    } else {
+      # DNA
+      raw_probes <- coord_intersect_final()
+    }
+
+    # work from inside out
+    if(input$fpp_choice) {
+      if(input$fpp_append_scheme == 1) {
+        if(input$fpp_sequence_select == 1) {
+          
+        }
+      }
+    }
+
+
+
+
+
+
+  })
   
   
   
