@@ -402,32 +402,9 @@ shinyServer(function(input, output) {
     }
     
     # work from inside out, starting with 5' inner primer
-    if(input$fpp_choice) {
-      # load either the PaintSHOP 5' primer set or the custom set provided
-      if(input$fpp_sequence_select == 1) {
-        # file path will need to be changed to correct file
-        fpp_seqs <- read_tsv("../appending/168.primers.txt", 
-                             col_names = c("ID", "primer"))
-      } else {
-        fpp_seqs <- read_tsv(input$fpp_custom_file$datapath,
-                             col_names = c("primer"))
-      }
-      
-      if(input$fpp_append_scheme == 1) {
-        appended <- append_same(appended, fpp_seqs)
-      } else if(input$fpp_append_scheme == 2) {
-        if(input$design_scheme) {
-          appended <- append_unique(appended, fpp_seqs)
-        } else {
-          appended <- append_unique(appended, fpp_seqs, rna = FALSE)
-        }
-      } else {
-        # create a vector of range strings from the input box in UI
-        custom_ranges <- str_split(input$fpp_custom_ranges, ", ")[[1]]
-        
-        appended <- append_custom(appended, fpp_seqs, custom_ranges)
-      }
-    }
+    appended <- append_handler(appended, input$fpp_choice, input$fpp_sequence_select,
+                               input$fpp_custom_file$datapath, input$fpp_append_scheme,
+                               input$design_scheme, input$fpp_custom_ranges)
 
     appended %>%
       select(everything())
