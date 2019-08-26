@@ -128,35 +128,61 @@ append_custom <- function(probes, sequences, input_ranges, left = TRUE) {
 }
 
 # function that handles the full append operation for a given sequence
-append_handler <- function(appended, choice, sequence_select, custom_file_path, 
-                           append_scheme, design_scheme, custom_ranges, left = TRUE) {
+append_handler <- function(appended, choice, sequence_select, seqs_file_path,
+                           custom_file_path, append_scheme, design_scheme, 
+                           custom_ranges, left = TRUE) {
   
   if(choice) {
-    # load either the PaintSHOP 5' primer set or the custom set provided
+    # load either the PaintSHOP 5' set or the custom set provided
     if(sequence_select == 1) {
       # file path will need to be changed to correct file
-      fpp_seqs <- read_tsv("../appending/168.primers.txt", 
+      seqs <- read_tsv(seqs_file_path, 
                            col_names = c("ID", "primer"))
     } else {
-      fpp_seqs <- read_tsv(custom_file_path,
+      seqs <- read_tsv(custom_file_path,
                            col_names = c("primer"))
     }
     
     if(append_scheme == 1) {
-      appended <- append_same(appended, fpp_seqs, left = left)
+      appended <- append_same(appended, seqs, left = left)
     } else if(append_scheme == 2) {
       if(design_scheme) {
-        appended <- append_unique(appended, fpp_seqs, left = left)
+        appended <- append_unique(appended, seqs, left = left)
       } else {
-        appended <- append_unique(appended, fpp_seqs, rna = FALSE, left = left)
+        appended <- append_unique(appended, seqs, rna = FALSE, left = left)
       }
     } else {
       # create a vector of range strings from the input box in UI
       custom_ranges <- str_split(custom_ranges, ", ")[[1]]
       
-      appended <- append_custom(appended, fpp_seqs, custom_ranges, left = left)
+      appended <- append_custom(appended, seqs, custom_ranges, left = left)
     }
   }
   
+  return(appended)
+}
+
+# special handler for SABER since there are less options
+saber_handler <- function(appended, seqs_file_path, append_scheme,
+                          design_scheme, custom_ranges) {
+  
+  seqs <- read_tsv(seqs_file_path, 
+                   col_names = c("primer", "ID"))
+  
+  if(append_scheme == 1) {
+    appended <- append_same(appended, seqs, left = FALSE)
+  } else if(append_scheme == 2) {
+    if(design_scheme) {
+      appended <- append_unique(appended, seqs, left = FALSE)
+    } else {
+      appended <- append_unique(appended, seqs, rna = FALSE, left = FALSE)
+    }
+  } else {
+    # create a vector of range strings from the input box in UI
+    custom_ranges <- str_split(custom_ranges, ", ")[[1]]
+    
+    appended <- append_custom(appended, seqs, custom_ranges, left = FALSE)
+  }
+
   return(appended)
 }

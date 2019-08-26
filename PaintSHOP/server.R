@@ -346,6 +346,7 @@ shinyServer(function(input, output) {
   observeEvent(input$tp_appending_choice, {
     if(input$tp_appending_choice == 1) {
       # show all SABER options
+      shinyjs::show("saber_x")
       shinyjs::show("saber_append_scheme")
       shinyjs::show("saber_custom_ranges")
       
@@ -361,6 +362,7 @@ shinyServer(function(input, output) {
       
     } else if(input$tp_appending_choice == 2) {
       # hide all SABER options
+      shinyjs::hide("saber_x")
       shinyjs::hide("saber_append_scheme")
       shinyjs::hide("saber_custom_ranges")
       
@@ -375,6 +377,7 @@ shinyServer(function(input, output) {
       shinyjs::show("tpu_choice_hr")
     } else {
       # hide all SABER options
+      shinyjs::hide("saber_x")
       shinyjs::hide("saber_append_scheme")
       shinyjs::hide("saber_custom_ranges")
       
@@ -401,10 +404,55 @@ shinyServer(function(input, output) {
       appended <- coord_intersect_final()
     }
     
+    ### NOTE: all sequence file paths will need to change
+    
     # work from inside out, starting with 5' inner primer
     appended <- append_handler(appended, input$fpp_choice, input$fpp_sequence_select,
-                               input$fpp_custom_file$datapath, input$fpp_append_scheme,
-                               input$design_scheme, input$fpp_custom_ranges)
+                               "../appending/168.primers.txt", input$fpp_custom_file$datapath, 
+                               input$fpp_append_scheme, input$design_scheme, input$fpp_custom_ranges)
+    
+    # next, the 5' bridge sequence
+    appended <- append_handler(appended, input$fpb_choice, input$fpb_sequence_select,
+                               "../appending/168.primers.txt", input$fpb_custom_file$datapath, 
+                               input$fpb_append_scheme, input$design_scheme, input$fpb_custom_ranges)
+    
+    # 5' universal, the last sequence for the 5' side
+    appended <- append_handler(appended, input$fpu_choice, input$fpu_sequence_select,
+                               "../appending/168.primers.txt", input$fpu_custom_file$datapath, 
+                               input$fpu_append_scheme, input$design_scheme, input$fpu_custom_ranges)
+    
+    ###################################################################################
+    
+    # either append SABER or 3' primer/bridge/universal
+    if(input$tp_appending_choice == 1) {
+      # SABER was selected, determine number of concatemers and append
+      if(input$saber_x == 1) {
+        saber_file_path <- "../appending/SABER_RC_ordered.txt"
+      } else {
+        saber_file_path <- "../appending/SABER_RC_ordered.txt"
+      }
+      
+     appended <- saber_handler(appended, saber_file_path, input$saber_append_scheme,
+                               input$design_scheme, input$saber_custom_ranges) 
+    } else {
+      # work from inside out, starting with 3' inner primer
+      appended <- append_handler(appended, input$tpp_choice, input$tpp_sequence_select,
+                                 "../appending/168.primers.txt", input$tpp_custom_file$datapath, 
+                                 input$tpp_append_scheme, input$design_scheme, input$tpp_custom_ranges,
+                                 left = FALSE)
+      
+      # next, the 3' bridge sequence
+      appended <- append_handler(appended, input$tpb_choice, input$tpb_sequence_select,
+                                 "../appending/168.primers.txt", input$tpb_custom_file$datapath, 
+                                 input$tpb_append_scheme, input$design_scheme, input$tpb_custom_ranges,
+                                 left = FALSE)
+      
+      # 3' universal, the last sequence for the 3' side
+      appended <- append_handler(appended, input$tpu_choice, input$tpu_sequence_select,
+                                 "../appending/168.primers.txt", input$tpu_custom_file$datapath, 
+                                 input$tpu_append_scheme, input$design_scheme, input$tpu_custom_ranges,
+                                 left = FALSE)
+    }
 
     appended %>%
       select(everything())

@@ -209,6 +209,9 @@ shinyUI(fluidPage(
            ###########################################################################
            
            # SABER Sequence options
+           hidden(radioButtons("saber_x", "Number of copies of concatemer:",
+                               c("1x" = 1, "2x" = 2),
+                               selected = 1)),
            hidden(radioButtons("saber_append_scheme", "Format:",
                                c("Same for all probes" = 1, 
                                  "Unique for each target" = 2,
