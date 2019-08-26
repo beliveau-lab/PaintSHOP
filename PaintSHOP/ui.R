@@ -279,6 +279,7 @@ shinyUI(fluidPage(
          ),
          mainPanel(
            # main panel for appending
+           DT::dataTableOutput("append_table")
          )
         )
       ),

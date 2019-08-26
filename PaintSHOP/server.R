@@ -399,24 +399,41 @@ shinyServer(function(input, output) {
       # DNA
       raw_probes <- coord_intersect_final()
     }
-
-    # work from inside out
+    
+    # work from inside out, starting with 5' inner primer
     if(input$fpp_choice) {
+      # load either the PaintSHOP 5' primer set or the custom set provided
+      if(input$fpp_sequence_select == 1) {
+        fpp_seqs <- read_tsv("../appending/168.primers.txt", 
+                             col_names = c("ID", "primer"))
+      } else {
+        fpp_seqs <- read_tsv(input$fpp_custom_file$datapath,
+                             col_names = c("primer"))
+      }
+      
       if(input$fpp_append_scheme == 1) {
-        if(input$fpp_sequence_select == 1) {
-          
+        fpp_appended <- append_same(raw_probes, fpp_seqs)
+      } else if(input$fpp_append_scheme == 2) {
+        if(input$design_scheme) {
+          fpp_appended <- append_unique(raw_probes, fpp_seqs)
+        } else {
+          fpp_appended <- append_unique(raw_probes, fpp_seq, rna = FALSE)
         }
+      } else {
+        # create a vector of range strings from the input box in UI
+        custom_ranges <- str_split(input$fpp_custom_ranges, ", ")[[1]]
+        
+        fpp_appended <- append_custom(raw_probes, fpp_seqs, custom_ranges)
       }
     }
 
-
-
-
-
-
+    fpp_appended %>%
+      select(everything())
   })
   
-  
+  output$append_table <- DT::renderDataTable({
+    DT::datatable(probes_appended())
+  })
   
   
 })

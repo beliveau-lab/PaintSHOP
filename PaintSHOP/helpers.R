@@ -95,7 +95,7 @@ append_custom <- function(probes, sequences, input_ranges, left = TRUE) {
   
   probe_range <- seq(1, nrow(probes))
   
-  if(input_range_numeric != probe_range) {
+  if(!all(input_range_numeric == probe_range)) {
     stop("Error: The provided custom ranges don't cover the probes correctly.")
   }
   
