@@ -199,7 +199,7 @@ shinyServer(function(input, output) {
     if(input$coord_balance_set) {
       probes_greater_or_eq <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
-        mutate(target = str_c(chrom.y, start.y)) %>%
+        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
         filter(n() >= input$coord_balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
         slice(1:input$coord_balance_goal)
@@ -207,12 +207,12 @@ shinyServer(function(input, output) {
       probes_less <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
         filter(n() < input$coord_balance_goal) %>%
-        mutate(target = str_c(chrom.y, start.y))
+        mutate(target = str_c(chrom.y, start.y, "-", stop.y))
       
       targets_less <- unique(probes_less$target)
       
       probes_add_back <- coord_intersect() %>%
-        mutate(target = str_c(chrom.y, start.y)) %>%
+        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
         filter(target %in% targets_less) %>%
         group_by(chrom.y, start.y) %>%
         arrange(off_target, .by_group = TRUE) %>%
@@ -221,7 +221,7 @@ shinyServer(function(input, output) {
       bind_rows(probes_greater_or_eq, probes_add_back)
     } else {
       coord_intersect_filter() %>%
-        mutate(target = str_c(chrom.y, start.y))
+        mutate(target = str_c(chrom.y, start.y, "-", stop.y))
     }
   })
   
@@ -404,22 +404,32 @@ shinyServer(function(input, output) {
       appended <- coord_intersect_final()
     }
     
+    # create a master table with unique targets as a column
+    if(input$design_scheme) {
+      master_table <<- tibble(target = appended$refseq)
+    } else {
+      master_table <<- tibble(target = appended$target)
+    }
+    
     ### NOTE: all sequence file paths will need to change
     
     # work from inside out, starting with 5' inner primer
     appended <- append_handler(appended, input$fpp_choice, input$fpp_sequence_select,
                                "../appending/168.primers.txt", input$fpp_custom_file$datapath, 
-                               input$fpp_append_scheme, input$design_scheme, input$fpp_custom_ranges)
+                               input$fpp_append_scheme, input$design_scheme, 
+                               input$fpp_custom_ranges, "five_prime_primer")
     
     # next, the 5' bridge sequence
     appended <- append_handler(appended, input$fpb_choice, input$fpb_sequence_select,
                                "../appending/168.primers.txt", input$fpb_custom_file$datapath, 
-                               input$fpb_append_scheme, input$design_scheme, input$fpb_custom_ranges)
+                               input$fpb_append_scheme, input$design_scheme, 
+                               input$fpb_custom_ranges, "five_prime_bridge")
     
     # 5' universal, the last sequence for the 5' side
     appended <- append_handler(appended, input$fpu_choice, input$fpu_sequence_select,
                                "../appending/168.primers.txt", input$fpu_custom_file$datapath, 
-                               input$fpu_append_scheme, input$design_scheme, input$fpu_custom_ranges)
+                               input$fpu_append_scheme, input$design_scheme, 
+                               input$fpu_custom_ranges, "five_prime_universal")
     
     ###################################################################################
     
@@ -433,33 +443,45 @@ shinyServer(function(input, output) {
       }
       
      appended <- saber_handler(appended, saber_file_path, input$saber_append_scheme,
-                               input$design_scheme, input$saber_custom_ranges) 
+                               input$design_scheme, input$saber_custom_ranges, "saber") 
     } else {
       # work from inside out, starting with 3' inner primer
       appended <- append_handler(appended, input$tpp_choice, input$tpp_sequence_select,
                                  "../appending/168.primers.txt", input$tpp_custom_file$datapath, 
-                                 input$tpp_append_scheme, input$design_scheme, input$tpp_custom_ranges,
-                                 left = FALSE)
+                                 input$tpp_append_scheme, input$design_scheme, 
+                                 input$tpp_custom_ranges, "three_prime_primer", left = FALSE)
       
       # next, the 3' bridge sequence
       appended <- append_handler(appended, input$tpb_choice, input$tpb_sequence_select,
                                  "../appending/168.primers.txt", input$tpb_custom_file$datapath, 
-                                 input$tpb_append_scheme, input$design_scheme, input$tpb_custom_ranges,
-                                 left = FALSE)
+                                 input$tpb_append_scheme, input$design_scheme, 
+                                 input$tpb_custom_ranges, "three_prime_bridge", left = FALSE)
       
       # 3' universal, the last sequence for the 3' side
       appended <- append_handler(appended, input$tpu_choice, input$tpu_sequence_select,
                                  "../appending/168.primers.txt", input$tpu_custom_file$datapath, 
-                                 input$tpu_append_scheme, input$design_scheme, input$tpu_custom_ranges,
-                                 left = FALSE)
+                                 input$tpu_append_scheme, input$design_scheme, 
+                                 input$tpu_custom_ranges, "three_prime_universal", left = FALSE)
     }
 
-    appended %>%
-      select(everything())
+    appended_master <- list("appended" = appended,
+                            "master_table" = master_table)
+    
+    appended_master
   })
   
   output$append_table <- DT::renderDataTable({
-    DT::datatable(probes_appended())
+    summary_table <- probes_appended()$master_table
+    
+    collapse_to_list <- function(column) {
+      return(list(unique(column)))
+    }
+    
+    summary_table <- summary_table %>%
+      group_by(target) %>%
+      summarise_all(collapse_to_list)
+
+    DT::datatable(summary_table)
   })
   
   

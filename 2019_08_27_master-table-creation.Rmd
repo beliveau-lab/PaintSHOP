@@ -1,0 +1,81 @@
+---
+title: "Master Table Creation"
+output: html_notebook
+---
+
+I want to experiment with how to create a master table of which sequences were appended to each target.
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+probes <- read_delim("/Users/hershe/Documents/OligoServer/probe_dbs/refseq_hg38_DNA-FISH_DB.csv",
+                     col_names = c("chrom", "start", "stop", 
+                                   "sequence", "Tm", "on-target",
+                                   "off-target", "repeat", "max-kmer",
+                                   "refseq"),
+                     delim = "\t")
+
+probes <- head(probes, 1000)
+probes
+```
+
+I want to create a data frame with a single row containing the uniqe targets.
+
+```{r}
+master_table <- tibble(targets = unique(probes$refseq))
+
+master_table
+```
+
+If I append a single sequence to all probes, I want to broadcast as the value for the entire sequence column.
+
+```{r}
+master_table[,"five_prime_universal"] <- "foo"
+
+master_table
+```
+
+I may need to create the master table in my server script, and pass it as an argument to my appending functions, in order for for changes that I make to it at each step to persist through the appending process.
+
+```{r}
+probes_copy <- probes
+```
+
+```{r}
+change_global <- function() {
+  probes_copy[, "fpu"] <<- "foo"
+}
+```
+
+```{r}
+change_global()
+```
+
+```{r}
+probes_copy["refseq" == "YP_003024033", "fpu"] <- "bar"
+```
+
+Actually, at first, the master table should start with the column of targets in total, not just the unique targets. The grouping will happen later.
+
+```{r}
+master_table <- tibble(target = probes$refseq)
+```
+
+```{r}
+change_global2 <- function(probes) {
+  master_table[, "fpu"] <<- "TTTTT"
+  
+  probes_appended <- probes %>%
+    mutate(sequence = str_c("TTTTT", sequence))
+  
+  return(probes_appended)
+}
+```
+
+```{r}
+test <- change_global2(probes_copy)
+```
+
+
