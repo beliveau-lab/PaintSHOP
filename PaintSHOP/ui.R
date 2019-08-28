@@ -282,18 +282,13 @@ shinyUI(fluidPage(
          ),
          mainPanel(
            # main panel for appending
+           tags$img(height = 200,
+                    width = 1000,
+                    src = "probe-all.png"),
            DT::dataTableOutput("append_table")
          )
         )
       ),
-      tabPanel("Information"),
-      
-      tabPanel("Summary",
-        DT::dataTableOutput("summary_table")
-      )
+      tabPanel("Download")
     )
-    
-    
-    
 ))
-

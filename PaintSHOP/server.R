@@ -110,10 +110,6 @@ shinyServer(function(input, output) {
     DT::datatable(probe_intersect_final())
   })
   
-  output$summary_table <- DT::renderDataTable({
-    DT::datatable(head(probes_refseq()))
-  })
-  
   observeEvent(input$restore_default, {
     shinyjs::reset("repeat_seq")
     shinyjs::reset("off_target")
