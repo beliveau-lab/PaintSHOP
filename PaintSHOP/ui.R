@@ -18,6 +18,7 @@ shinyUI(fluidPage(
     ),
     
     navbarPage("PaintSHOP",
+      tabPanel("About"),
       tabPanel("RNA Probe Design",
         sidebarLayout(
           sidebarPanel(
@@ -289,6 +290,24 @@ shinyUI(fluidPage(
          )
         )
       ),
-      tabPanel("Download")
+      tabPanel("Download",
+        sidebarLayout(
+          sidebarPanel(
+            radioButtons("appended_tf", "Appended Sequences:",
+                         c("Yes" = TRUE, "No" = FALSE),
+                         selected = FALSE),
+            selectInput("download_choice", "Choose a file to download:",
+                        choices = c("None Selected" = 1,
+                                    "Order File" = 2,
+                                    "Appending File" = 3,
+                                    "Full Probe File" = 4),
+                        selected = 1),
+            downloadButton("download_file", "Download")
+          ),
+          mainPanel(
+            DT::dataTableOutput("download_table")
+          )
+        )
+      )
     )
 ))

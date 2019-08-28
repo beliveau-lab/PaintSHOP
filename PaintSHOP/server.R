@@ -214,17 +214,25 @@ shinyServer(function(input, output) {
         arrange(off_target, .by_group = TRUE) %>%
         slice(1:input$coord_balance_goal)
       
-      bind_rows(probes_greater_or_eq, probes_add_back)
+      bind_rows(probes_greater_or_eq, probes_add_back) %>%
+        rename(chrom = chrom.x,
+               start = start.x,
+               stop = stop.x) %>%
+        select(-c(chrom.y, start.y, stop.y))
     } else {
       coord_intersect_filter() %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y))
+        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        rename(chrom = chrom.x,
+               start = start.x,
+               stop = stop.x) %>%
+        select(-c(chrom.y, start.y, stop.y))
     }
   })
   
   # count number of probes for each ID
   coord_counts <- reactive({
     coord_intersect_final() %>%
-      group_by(chrom.y, start.y) %>%
+      group_by(target) %>%
       count()
   })
   
@@ -480,5 +488,91 @@ shinyServer(function(input, output) {
     DT::datatable(summary_table)
   })
   
+  ##############################################
+  # Downloading
+  ##############################################
   
+  download_data <- eventReactive(input$download_choice, {
+    if(input$download_choice == 2) {
+      if(input$appended_tf) {
+        probes <- probes_appended()$appended
+        summary <- probes_appended()$master_table %>%
+          select(-c(target))
+        
+        # create unique order ID containing info on what was appended
+        summary_cols <- colnames(summary)
+        
+        append_info <- ""
+        
+        for (col in summary_cols) {
+          info <- str_split(col, "_")[[1]]
+          info <- str_c(str_sub(info[1], 1, 1), str_sub(info[2], 1, 1), str_sub(info[3], 1, 1))
+          append_info <- str_c(append_info, info, sep = "_")
+        }
+        
+        probes <- probes %>%
+          mutate(order_id = str_c(chrom, start, append_info))
+        
+        probes %>%
+          select(c(order_id, sequence))
+      } else {
+        # base probes are either RNA or DNA
+        if(input$design_scheme) {
+          # RNA
+          probes <- probe_intersect_final()
+        } else {
+          # DNA
+          probes <- coord_intersect_final()
+        }
+        
+        probes <- probes %>%
+          mutate(order_id = str_c(chrom, start))
+        
+        probes %>%
+          select(c(order_id, sequence))
+      }
+        
+    } else if(input$download_choice == 3) {
+      collapse <- function(column) {
+        return(str_c(list(unique(column)), collapse = " "))
+      }
+      
+      probes_appended()$master_table %>%
+        group_by(target) %>%
+        summarise_all(collapse)
+    } else if(input$download_choice == 4) {
+      if(input$appended_tf) {
+        probes_appended()$appended
+      } else {
+        # base probes are either RNA or DNA
+        if(input$design_scheme) {
+          # RNA
+          probe_intersect_final()
+        } else {
+          # DNA
+          coord_intersect_final()
+        }
+      }
+    }
+  })
+  
+  output$download_table <- DT::renderDataTable({
+    DT::datatable(download_data())
+  })
+  
+  output$download_file <- downloadHandler(
+    filename = function() {
+      if(input$download_choice == 2) {
+        paste(Sys.Date(), "-PaintSHOP-order-file", ".txt", sep="")
+      } else if(input$download_choice == 3) {
+        paste(Sys.Date(), "-PaintSHOP-appending-file", ".txt", sep="")
+      } else if(input$download_choice == 4) {
+        paste(Sys.Date(), "-PaintSHOP-full-probe-file", ".txt", sep="")
+      }
+      
+    },
+    content = function(file) {
+      write_tsv(download_data(), file, col_names = FALSE)
+    }
+  )
 })
