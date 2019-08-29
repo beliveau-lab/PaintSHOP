@@ -62,12 +62,15 @@ shinyUI(fluidPage(
             actionButton("restore_default", label = "Restore Default Parameters"),
             tags$hr(),
             tags$h3("Balance Set (optional)"),
-            sliderInput("balance_goal", "Number of probes per target:",
+            radioButtons("balance_show", "",
+                         c("Show" = TRUE, "Hide" = FALSE),
+                         selected = FALSE),
+            hidden(sliderInput("balance_goal", "Number of probes per target:",
                         min = 15, max = 60,
-                        value = 30),
-            radioButtons("balance_set", "enable:",
-                         c("on" = TRUE, "off" = FALSE),
-                         selected = FALSE)
+                        value = 30)),
+            hidden(radioButtons("balance_set", "Enable:",
+                         c("Trim" = 1, "Balance" = 2, "Off" = 3),
+                         selected = 3))
           ),
           mainPanel(
             plotOutput("count_plot"),
@@ -120,12 +123,15 @@ shinyUI(fluidPage(
            actionButton("coord_restore_default", label = "Restore Default Parameters"),
            tags$hr(),
            tags$h3("Balance Set (optional)"),
-           sliderInput("coord_balance_goal", "Number of probes per target:",
+           radioButtons("coord_balance_show", "",
+                        c("Show" = TRUE, "Hide" = FALSE),
+                        selected = FALSE),
+           hidden(sliderInput("coord_balance_goal", "Number of probes per target:",
                        min = 15, max = 1000,
-                       value = 100),
-           radioButtons("coord_balance_set", "enable:",
-                        c("on" = TRUE, "off" = FALSE),
-                        selected = FALSE)
+                       value = 100)),
+           hidden(radioButtons("coord_balance_set", "Enable:",
+                        c("Trim" = 1, "Balance" = 2, "Off" = 3),
+                        selected = 3))
          ),
          mainPanel(
            plotOutput("coord_count_plot"),

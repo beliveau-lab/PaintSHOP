@@ -66,8 +66,18 @@ shinyServer(function(input, output) {
   })
   
   # code for balancing probe set
+  observeEvent(input$balance_show, {
+    if(input$balance_show) {
+      shinyjs::show("balance_goal")
+      shinyjs::show("balance_set")
+    } else {
+      shinyjs::hide("balance_goal")
+      shinyjs::hide("balance_set")
+    }
+  })
+  
   probe_intersect_final <- reactive({
-    if(input$balance_set) {
+    if(input$balance_set == 2) {
       probes_greater_or_eq <- probe_intersect_filter() %>%
         group_by(refseq) %>%
         filter(n() >= input$balance_goal) %>%
@@ -87,6 +97,19 @@ shinyServer(function(input, output) {
         slice(1:input$balance_goal)
       
       bind_rows(probes_greater_or_eq, probes_add_back)
+    } else if(input$balance_set == 1) {
+      probes_greater_or_eq <- probe_intersect_filter() %>%
+        group_by(refseq) %>%
+        filter(n() >= input$balance_goal) %>%
+        arrange(off_target, .by_group = TRUE) %>%
+        slice(1:input$balance_goal)
+      
+      probes_less <- probe_intersect_filter() %>%
+        group_by(refseq) %>%
+        filter(n() < input$balance_goal) 
+      
+      bind_rows(probes_greater_or_eq, probes_less)
+      
     } else {
       probe_intersect_filter()
     }
@@ -191,8 +214,18 @@ shinyServer(function(input, output) {
   })
   
   # code for balancing probe set
+  observeEvent(input$coord_balance_show, {
+    if(input$coord_balance_show) {
+      shinyjs::show("coord_balance_goal")
+      shinyjs::show("coord_balance_set")
+    } else {
+      shinyjs::hide("coord_balance_goal")
+      shinyjs::hide("coord_balance_set")
+    }
+  })
+  
   coord_intersect_final <- reactive({
-    if(input$coord_balance_set) {
+    if(input$coord_balance_set == 2) {
       probes_greater_or_eq <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
         mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
@@ -215,6 +248,24 @@ shinyServer(function(input, output) {
         slice(1:input$coord_balance_goal)
       
       bind_rows(probes_greater_or_eq, probes_add_back) %>%
+        rename(chrom = chrom.x,
+               start = start.x,
+               stop = stop.x) %>%
+        select(-c(chrom.y, start.y, stop.y))
+    } else if(input$coord_balance_set == 1) {
+      probes_greater_or_eq <- coord_intersect_filter() %>%
+        group_by(chrom.y, start.y) %>%
+        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        filter(n() >= input$coord_balance_goal) %>%
+        arrange(off_target, .by_group = TRUE) %>%
+        slice(1:input$coord_balance_goal)
+      
+      probes_less <- coord_intersect_filter() %>%
+        group_by(chrom.y, start.y) %>%
+        filter(n() < input$coord_balance_goal) %>%
+        mutate(target = str_c(chrom.y, start.y, "-", stop.y))
+      
+      bind_rows(probes_greater_or_eq, probes_less) %>%
         rename(chrom = chrom.x,
                start = start.x,
                stop = stop.x) %>%
