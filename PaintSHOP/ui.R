@@ -5,6 +5,7 @@
 library(shiny)
 library(shinythemes)
 library(shinyjs)
+library(shinycssloaders)
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
@@ -82,7 +83,7 @@ shinyUI(fluidPage(
                          selected = 3))
           ),
           mainPanel(
-            plotOutput("count_plot"),
+            plotOutput("count_plot") %>% withSpinner(color = "grey"),
             DT::dataTableOutput("intersect_table")
             
           )
@@ -152,7 +153,7 @@ shinyUI(fluidPage(
                         selected = 3))
          ),
          mainPanel(
-           plotOutput("coord_count_plot"),
+           plotOutput("coord_count_plot") %>% withSpinner(color = "grey"),
            DT::dataTableOutput("coord_intersect_table")
            
          )
