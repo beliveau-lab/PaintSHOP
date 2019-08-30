@@ -21,12 +21,12 @@ shinyServer(function(input, output) {
                                    input$refseq_file), {
     # vroom makes a fast index instead of immediately loading
     # every row
-    df <- vroom(input$probeset,
-               col_names = c("chrom", "start", "stop", 
-                             "sequence", "Tm", "on_target",
-                             "off_target", "repeat_seq", "max_kmer",
-                             "refseq"),
-               delim = "\t")
+    vroom(input$probeset,
+          col_names = c("chrom", "start", "stop", 
+                        "sequence", "Tm", "on_target",
+                        "off_target", "repeat_seq", "max_kmer",
+                        "probe_strand", "refseq"),
+          delim = "\t")
   })
   
   # a reactive element that is a vector of the RefSeq IDs
@@ -148,11 +148,12 @@ shinyServer(function(input, output) {
                                  input$coord_file), {
     # vroom makes a fast index instead of immediately loading
     # every row
-    df <- vroom(input$probeset_coord,
-               col_names = c("chrom", "start", "stop", 
-                             "sequence", "Tm", "on_target",
-                             "off_target", "repeat_seq", "max_kmer"),
-               delim = "\t")
+    vroom(input$probeset_coord,
+          col_names = c("chrom", "start", "stop", 
+                        "sequence", "Tm", "on_target",
+                        "off_target", "repeat_seq", 
+                        "max_kmer", "probe_strand"),
+          delim = "\t")
   })
   
   # a reactive element that is a vector of the RefSeq IDs
@@ -179,8 +180,7 @@ shinyServer(function(input, output) {
       coord_df$start <- as.numeric(coord_df$start)
       coord_df$stop <- as.numeric(coord_df$stop)
       
-      coord_df %>%
-        select(everything())
+      coord_df
     } else {
       # read in a user's file and store it as a data frame w/
       # rows to do intersect
