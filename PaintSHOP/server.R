@@ -314,11 +314,13 @@ shinyServer(function(input, output) {
       shinyjs::show("fpo_append_scheme")
       shinyjs::show("fpo_custom_ranges")
       shinyjs::show("fpo_sequence_select")
+      shinyjs::show("fpo_n_per_target")
       shinyjs::show("fpo_custom_file")
     } else {
       shinyjs::hide("fpo_append_scheme")
       shinyjs::hide("fpo_custom_ranges")
       shinyjs::hide("fpo_sequence_select")
+      shinyjs::hide("fpo_n_per_target")
       shinyjs::hide("fpo_custom_file")
     }
   })
@@ -329,11 +331,13 @@ shinyServer(function(input, output) {
       shinyjs::show("fpb_append_scheme")
       shinyjs::show("fpb_custom_ranges")
       shinyjs::show("fpb_sequence_select")
+      shinyjs::show("fpb_n_per_target")
       shinyjs::show("fpb_custom_file")
     } else {
       shinyjs::hide("fpb_append_scheme")
       shinyjs::hide("fpb_custom_ranges")
       shinyjs::hide("fpb_sequence_select")
+      shinyjs::hide("fpb_n_per_target")
       shinyjs::hide("fpb_custom_file")
     }
   })
@@ -344,11 +348,13 @@ shinyServer(function(input, output) {
       shinyjs::show("fpi_append_scheme")
       shinyjs::show("fpi_custom_ranges")
       shinyjs::show("fpi_sequence_select")
+      shinyjs::show("fpi_n_per_target")
       shinyjs::show("fpi_custom_file")
     } else {
       shinyjs::hide("fpi_append_scheme")
       shinyjs::hide("fpi_custom_ranges")
       shinyjs::hide("fpi_sequence_select")
+      shinyjs::hide("fpi_n_per_target")
       shinyjs::hide("fpi_custom_file")
     }
   })
@@ -359,11 +365,13 @@ shinyServer(function(input, output) {
       shinyjs::show("tpi_append_scheme")
       shinyjs::show("tpi_custom_ranges")
       shinyjs::show("tpi_sequence_select")
+      shinyjs::show("tpi_n_per_target")
       shinyjs::show("tpi_custom_file")
     } else {
       shinyjs::hide("tpi_append_scheme")
       shinyjs::hide("tpi_custom_ranges")
       shinyjs::hide("tpi_sequence_select")
+      shinyjs::hide("tpi_n_per_target")
       shinyjs::hide("tpi_custom_file")
     }
   })
@@ -374,11 +382,13 @@ shinyServer(function(input, output) {
       shinyjs::show("tpb_append_scheme")
       shinyjs::show("tpb_custom_ranges")
       shinyjs::show("tpb_sequence_select")
+      shinyjs::show("tpb_n_per_target")
       shinyjs::show("tpb_custom_file")
     } else {
       shinyjs::hide("tpb_append_scheme")
       shinyjs::hide("tpb_custom_ranges")
       shinyjs::hide("tpb_sequence_select")
+      shinyjs::hide("tpb_n_per_target")
       shinyjs::hide("tpb_custom_file")
     }
   })
@@ -389,11 +399,13 @@ shinyServer(function(input, output) {
       shinyjs::show("tpo_append_scheme")
       shinyjs::show("tpo_custom_ranges")
       shinyjs::show("tpo_sequence_select")
+      shinyjs::show("tpo_n_per_target")
       shinyjs::show("tpo_custom_file")
     } else {
       shinyjs::hide("tpo_append_scheme")
       shinyjs::hide("tpo_custom_ranges")
       shinyjs::hide("tpo_sequence_select")
+      shinyjs::hide("tpo_n_per_target")
       shinyjs::hide("tpo_custom_file")
     }
   })
@@ -472,19 +484,19 @@ shinyServer(function(input, output) {
     appended <- append_handler(appended, input$fpi_choice, input$fpi_sequence_select,
                                "../appending/168.primers.txt", input$fpi_custom_file$datapath, 
                                input$fpi_append_scheme, input$design_scheme, 
-                               input$fpi_custom_ranges, "five_prime_inner")
+                               input$fpi_custom_ranges, "five_prime_inner", input$fpi_n_per_target)
     
     # next, the 5' bridge sequence
     appended <- append_handler(appended, input$fpb_choice, input$fpb_sequence_select,
                                "../appending/168.primers.txt", input$fpb_custom_file$datapath, 
                                input$fpb_append_scheme, input$design_scheme, 
-                               input$fpb_custom_ranges, "five_prime_bridge")
+                               input$fpb_custom_ranges, "five_prime_bridge", input$fpb_n_per_target)
     
     # 5' universal, the last sequence for the 5' side
     appended <- append_handler(appended, input$fpo_choice, input$fpo_sequence_select,
                                "../appending/168.primers.txt", input$fpo_custom_file$datapath, 
                                input$fpo_append_scheme, input$design_scheme, 
-                               input$fpo_custom_ranges, "five_prime_outer")
+                               input$fpo_custom_ranges, "five_prime_outer", input$fpo_n_per_target)
     
     ###################################################################################
     
@@ -498,25 +510,29 @@ shinyServer(function(input, output) {
       }
       
      appended <- saber_handler(appended, saber_file_path, input$saber_append_scheme,
-                               input$design_scheme, input$saber_custom_ranges, "saber") 
+                               input$design_scheme, input$saber_custom_ranges, 
+                               input$saber_n_per_target, "saber") 
     } else {
       # work from inside out, starting with 3' inner primer
       appended <- append_handler(appended, input$tpi_choice, input$tpi_sequence_select,
                                  "../appending/168.primers.txt", input$tpi_custom_file$datapath, 
                                  input$tpi_append_scheme, input$design_scheme, 
-                                 input$tpi_custom_ranges, "three_prime_inner", left = FALSE)
+                                 input$tpi_custom_ranges, "three_prime_inner", 
+                                 input$tpi_n_per_target, left = FALSE)
       
       # next, the 3' bridge sequence
       appended <- append_handler(appended, input$tpb_choice, input$tpb_sequence_select,
                                  "../appending/168.primers.txt", input$tpb_custom_file$datapath, 
                                  input$tpb_append_scheme, input$design_scheme, 
-                                 input$tpb_custom_ranges, "three_prime_bridge", left = FALSE)
+                                 input$tpb_custom_ranges, "three_prime_bridge", 
+                                 input$tpb_n_per_target, left = FALSE)
       
       # 3' universal, the last sequence for the 3' side
       appended <- append_handler(appended, input$tpo_choice, input$tpo_sequence_select,
                                  "../appending/168.primers.txt", input$tpo_custom_file$datapath, 
                                  input$tpo_append_scheme, input$design_scheme, 
-                                 input$tpo_custom_ranges, "three_prime_outer", left = FALSE)
+                                 input$tpo_custom_ranges, "three_prime_outer", 
+                                 input$tpo_n_per_target, left = FALSE)
     }
 
     appended_master <- list("appended" = appended,
@@ -585,7 +601,7 @@ shinyServer(function(input, output) {
         
     } else if(input$download_choice == 3) {
       collapse <- function(column) {
-        return(str_c(list(unique(column)), collapse = " "))
+        return(str_c(list(unique(column)), collapse = ","))
       }
       
       probes_appended()$master_table %>%

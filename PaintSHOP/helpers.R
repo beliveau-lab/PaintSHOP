@@ -22,11 +22,17 @@ append_unique <- function(probes, sequences, sequence_type, rna = TRUE, left = T
   # first test whether there are enough primers for every target
   if(rna) {
     if(nrow(sequences) < length(unique(probes$refseq))) {
-      stop("Error: There are less unique 5' primers than targets.")
+      error_string <- str_c("Error: There are less unique ",
+                            sequence_type,
+                            " sequences than targets.")
+      stop(error_string)
     }
   } else {
     if(nrow(sequences) < length(unique(probes$target))) {
-      stop("Error: There are less unique 5' primers than targets.")
+      error_string <- str_c("Error: There are less unique ",
+                            sequence_type,
+                            " sequences than targets.")
+      stop(error_string)
     }
   }
   
@@ -80,6 +86,94 @@ append_unique <- function(probes, sequences, sequence_type, rna = TRUE, left = T
   return(append_result)
 }
 
+# append multiple unique sequences to each target
+append_multiple <- function(probes, sequences, n_distinct, sequence_type, rna = TRUE, left = TRUE) {
+  # first test whether there are enough primers for N per target
+  if(rna) {
+    probes_needed <- length(unique(probes$refseq)) * n_distinct
+  } else {
+    probes_needed <- length(unique(probes$target)) * n_distinct
+  }
+  
+  if(nrow(sequences) < probes_needed) {
+    error_string <- str_c("Error: There are not enough ",
+                          sequence_type,
+                          " sequences to append ",
+                          n_distinct,
+                          " per target.")
+    stop(error_string)
+  }
+  
+  if(rna) {
+    unique_targets <<- unique(probes$refseq)
+  } else {
+    unique_targets <<- unique(probes$target)
+  }
+  
+  unique_sequences <<- unique(sequences$primer)
+  
+  probes_appended_list <- list()
+  
+  # I also need to break up master table when appending unique
+  master_table_list <- list()
+  
+  # keep separate index for sequences
+  sequence_start <- 1
+  sequence_stop <- n_distinct
+  sequence_current <- 1
+  
+  for (i in 1:length(unique_targets)) {
+    if(rna) {
+      probes_appended_list[[i]] <- probes %>%
+        filter(refseq == unique_targets[i])
+    } else {
+      probes_appended_list[[i]] <- probes %>%
+        filter(target == unique_targets[i])
+    }
+    
+    master_table_list[[i]] <- master_table %>%
+      filter(target == unique_targets[i])
+    
+    
+    n_probes <- nrow(probes_appended_list[[i]])
+    current_probe <- 1
+    
+    while (current_probe <= n_probes) {
+      if(left) {
+        probes_appended_list[[i]][current_probe,] <- probes_appended_list[[i]][current_probe,] %>%
+          mutate(sequence = str_c(unique_sequences[sequence_current], sequence, sep = "TTT"))
+      } else {
+        probes_appended_list[[i]][current_probe,] <- probes_appended_list[[i]][current_probe,] %>%
+          mutate(sequence = str_c(sequence, unique_sequences[sequence_current], sep = "TTT"))
+      }
+      
+      # update master table
+      master_table_list[[i]][current_probe, sequence_type] <- unique_sequences[sequence_current]
+      
+      # move to next probe for the target
+      current_probe <- current_probe + 1
+      
+      # if less than the last index of unique probes being used for the target
+      if(sequence_current < sequence_stop) {
+        sequence_current <- sequence_current + 1
+      } else {
+        # wrap back around
+        sequence_current <- sequence_start
+      }
+    }
+    
+    # move to the next N unique sequences for the next unique target
+    sequence_start <- sequence_stop + 1
+    sequence_stop <- sequence_start + n_distinct - 1
+    sequence_current <- sequence_start
+  }
+  
+  append_result <- bind_rows(probes_appended_list)
+  master_table <<- bind_rows(master_table_list)
+  
+  return(append_result)
+}
+
 # convert a vector of ranges "x:y" into the numeric range they represent
 hyphen_range <- function(input_ranges) {
   range_vector <- c()
@@ -109,7 +203,10 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges, left =
   
   # also make sure that there enough probes to cover the ranges provided
   if(nrow(sequences) < length(unique(input_ranges))) {
-    stop("Error: There are less unique 5' primers than custom ranges provided.")
+    error_string <- str_c("Error: There are less unique ",
+                          sequence_type,
+                          " sequences than custom ranges provided.")
+    stop(error_string)
   }
   
   unique_sequences <- unique(sequences$primer)
@@ -141,7 +238,7 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges, left =
 # function that handles the full append operation for a given sequence
 append_handler <- function(appended, choice, sequence_select, seqs_file_path,
                            custom_file_path, append_scheme, design_scheme, 
-                           custom_ranges, sequence_type, left = TRUE) {
+                           custom_ranges, sequence_type, n_distinct, left = TRUE) {
   
   if(choice) {
     # load either the PaintSHOP 5' set or the custom set provided
@@ -163,6 +260,13 @@ append_handler <- function(appended, choice, sequence_select, seqs_file_path,
         appended <- append_unique(appended, seqs, sequence_type,
                                   rna = FALSE, left = left)
       }
+    } else if(append_scheme == 3) {
+      if(design_scheme) {
+        appended <- append_multiple(appended, seqs, n_distinct, sequence_type, left = left)
+      } else {
+        appended <- append_multiple(appended, seqs, n_distinct, sequence_type,
+                                  rna = FALSE, left = left)
+      }
     } else {
       # create a vector of range strings from the input box in UI
       custom_ranges <- str_split(custom_ranges, ", ")[[1]]
@@ -176,7 +280,7 @@ append_handler <- function(appended, choice, sequence_select, seqs_file_path,
 
 # special handler for SABER since there are less options
 saber_handler <- function(appended, seqs_file_path, append_scheme,
-                          design_scheme, custom_ranges, sequence_type) {
+                          design_scheme, custom_ranges, sequence_type, n_distinct) {
   
   seqs <- read_tsv(seqs_file_path, 
                    col_names = c("primer", "ID"))
@@ -188,6 +292,13 @@ saber_handler <- function(appended, seqs_file_path, append_scheme,
       appended <- append_unique(appended, seqs, sequence_type, left = FALSE)
     } else {
       appended <- append_unique(appended, seqs, sequence_type,
+                                rna = FALSE, left = FALSE)
+    }
+  } else if(append_scheme == 3) {
+    if(design_scheme) {
+      appended <- append_multiple(appended, seqs, n_distinct, sequence_type, left = FALSE)
+    } else {
+      appended <- append_multiple(appended, seqs, n_distinct, sequence_type,
                                 rna = FALSE, left = FALSE)
     }
   } else {
