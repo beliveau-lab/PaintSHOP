@@ -578,7 +578,7 @@ shinyServer(function(input, output) {
         }
         
         probes <- probes %>%
-          mutate(order_id = str_c(chrom, start, append_info))
+          mutate(order_id = str_c(chrom, "_", start, append_info))
         
         probes %>%
           select(c(order_id, sequence))
@@ -593,7 +593,7 @@ shinyServer(function(input, output) {
         }
         
         probes <- probes %>%
-          mutate(order_id = str_c(chrom, start))
+          mutate(order_id = str_c(chrom, "_", start))
         
         probes %>%
           select(c(order_id, sequence))
