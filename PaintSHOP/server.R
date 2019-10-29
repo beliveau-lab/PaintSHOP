@@ -312,12 +312,14 @@ shinyServer(function(input, output) {
   # toggle 5' universal primer append options
   observeEvent(input$fpo_choice, {
     if(input$fpo_choice) {
+      shinyjs::show("fpo_orientation")
       shinyjs::show("fpo_append_scheme")
       shinyjs::show("fpo_custom_ranges")
       shinyjs::show("fpo_sequence_select")
       shinyjs::show("fpo_n_per_target")
       shinyjs::show("fpo_custom_file")
     } else {
+      shinyjs::hide("fpo_orientation")
       shinyjs::hide("fpo_append_scheme")
       shinyjs::hide("fpo_custom_ranges")
       shinyjs::hide("fpo_sequence_select")
@@ -329,12 +331,14 @@ shinyServer(function(input, output) {
   # toggle 5' bridge sequence append options
   observeEvent(input$fpb_choice, {
     if(input$fpb_choice) {
+      shinyjs::show("fpb_orientation")
       shinyjs::show("fpb_append_scheme")
       shinyjs::show("fpb_custom_ranges")
       shinyjs::show("fpb_sequence_select")
       shinyjs::show("fpb_n_per_target")
       shinyjs::show("fpb_custom_file")
     } else {
+      shinyjs::hide("fpb_orientation")
       shinyjs::hide("fpb_append_scheme")
       shinyjs::hide("fpb_custom_ranges")
       shinyjs::hide("fpb_sequence_select")
@@ -346,12 +350,14 @@ shinyServer(function(input, output) {
   # toggle 5' primer append options
   observeEvent(input$fpi_choice, {
     if(input$fpi_choice) {
+      shinyjs::show("fpi_orientation")
       shinyjs::show("fpi_append_scheme")
       shinyjs::show("fpi_custom_ranges")
       shinyjs::show("fpi_sequence_select")
       shinyjs::show("fpi_n_per_target")
       shinyjs::show("fpi_custom_file")
     } else {
+      shinyjs::hide("fpi_orientation")
       shinyjs::hide("fpi_append_scheme")
       shinyjs::hide("fpi_custom_ranges")
       shinyjs::hide("fpi_sequence_select")
@@ -363,12 +369,14 @@ shinyServer(function(input, output) {
   # toggle 3' primer append options
   observeEvent(input$tpi_choice, {
     if(input$tpi_choice) {
+      shinyjs::show("tpi_orientation")
       shinyjs::show("tpi_append_scheme")
       shinyjs::show("tpi_custom_ranges")
       shinyjs::show("tpi_sequence_select")
       shinyjs::show("tpi_n_per_target")
       shinyjs::show("tpi_custom_file")
     } else {
+      shinyjs::hide("tpi_orientation")
       shinyjs::hide("tpi_append_scheme")
       shinyjs::hide("tpi_custom_ranges")
       shinyjs::hide("tpi_sequence_select")
@@ -380,12 +388,14 @@ shinyServer(function(input, output) {
   # toggle 3' bridge sequence append options
   observeEvent(input$tpb_choice, {
     if(input$tpb_choice) {
+      shinyjs::show("tpb_orientation")
       shinyjs::show("tpb_append_scheme")
       shinyjs::show("tpb_custom_ranges")
       shinyjs::show("tpb_sequence_select")
       shinyjs::show("tpb_n_per_target")
       shinyjs::show("tpb_custom_file")
     } else {
+      shinyjs::hide("tpb_orientation")
       shinyjs::hide("tpb_append_scheme")
       shinyjs::hide("tpb_custom_ranges")
       shinyjs::hide("tpb_sequence_select")
@@ -397,12 +407,14 @@ shinyServer(function(input, output) {
   # toggle 3' universal primer append options
   observeEvent(input$tpo_choice, {
     if(input$tpo_choice) {
+      shinyjs::show("tpo_orientation")
       shinyjs::show("tpo_append_scheme")
       shinyjs::show("tpo_custom_ranges")
       shinyjs::show("tpo_sequence_select")
       shinyjs::show("tpo_n_per_target")
       shinyjs::show("tpo_custom_file")
     } else {
+      shinyjs::hide("tpo_orientation")
       shinyjs::hide("tpo_append_scheme")
       shinyjs::hide("tpo_custom_ranges")
       shinyjs::hide("tpo_sequence_select")
@@ -485,19 +497,22 @@ shinyServer(function(input, output) {
     appended <- append_handler(appended, input$fpi_choice, input$fpi_sequence_select,
                                "../appending/168.primers.txt", input$fpi_custom_file$datapath, 
                                input$fpi_append_scheme, input$design_scheme, 
-                               input$fpi_custom_ranges, "five_prime_inner", input$fpi_n_per_target)
+                               input$fpi_custom_ranges, "five_prime_inner",
+                               input$fpi_n_per_target, lleft = TRUE, input$fpi_orientation)
     
     # next, the 5' bridge sequence
     appended <- append_handler(appended, input$fpb_choice, input$fpb_sequence_select,
                                "../appending/168.primers.txt", input$fpb_custom_file$datapath, 
                                input$fpb_append_scheme, input$design_scheme, 
-                               input$fpb_custom_ranges, "five_prime_bridge", input$fpb_n_per_target)
+                               input$fpb_custom_ranges, "five_prime_bridge",
+                               input$fpb_n_per_target, left = TRUE, input$fpb_orientation)
     
     # 5' universal, the last sequence for the 5' side
     appended <- append_handler(appended, input$fpo_choice, input$fpo_sequence_select,
                                "../appending/168.primers.txt", input$fpo_custom_file$datapath, 
                                input$fpo_append_scheme, input$design_scheme, 
-                               input$fpo_custom_ranges, "five_prime_outer", input$fpo_n_per_target)
+                               input$fpo_custom_ranges, "five_prime_outer",
+                               input$fpo_n_per_target, left = TRUE, input$fpo_orientation)
     
     ###################################################################################
     
@@ -519,21 +534,21 @@ shinyServer(function(input, output) {
                                  "../appending/168.primers.txt", input$tpi_custom_file$datapath, 
                                  input$tpi_append_scheme, input$design_scheme, 
                                  input$tpi_custom_ranges, "three_prime_inner", 
-                                 input$tpi_n_per_target, left = FALSE)
+                                 input$tpi_n_per_target, left = FALSE, input$tpi_orientation)
       
       # next, the 3' bridge sequence
       appended <- append_handler(appended, input$tpb_choice, input$tpb_sequence_select,
                                  "../appending/168.primers.txt", input$tpb_custom_file$datapath, 
                                  input$tpb_append_scheme, input$design_scheme, 
                                  input$tpb_custom_ranges, "three_prime_bridge", 
-                                 input$tpb_n_per_target, left = FALSE)
+                                 input$tpb_n_per_target, left = FALSE, input$tpb_orientation)
       
       # 3' universal, the last sequence for the 3' side
       appended <- append_handler(appended, input$tpo_choice, input$tpo_sequence_select,
                                  "../appending/168.primers.txt", input$tpo_custom_file$datapath, 
                                  input$tpo_append_scheme, input$design_scheme, 
                                  input$tpo_custom_ranges, "three_prime_outer", 
-                                 input$tpo_n_per_target, left = FALSE)
+                                 input$tpo_n_per_target, left = FALSE, input$tpo_orientation)
     }
 
     appended_master <- list("appended" = appended,
