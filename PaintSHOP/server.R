@@ -6,6 +6,7 @@ library(shiny)
 library(tidyverse)
 library(vroom)
 library(fuzzyjoin)
+library(Biostrings)
 
 # load appending functions
 source("helpers.R")

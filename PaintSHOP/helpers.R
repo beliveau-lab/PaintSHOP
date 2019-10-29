@@ -1,9 +1,16 @@
 # append same sequence to all probes
-append_same <- function(probes, sequences, sequence_type, left = TRUE) {
+append_same <- function(probes, sequences, sequence_type,
+                        left = TRUE, rc = FALSE) {
   # retrieve first primer from list
   primer <- sequences$primer[1]
   
+  # add the 5' -> 3' primer to the master table
   master_table[, sequence_type] <<- primer
+  
+  # flip primer sequence if RC is chosen
+  if(rc) {
+    primer <- toString(reverseComplement(DNAString(primer)))
+  }
   
   # append to left or right
   if(left) {
@@ -18,7 +25,9 @@ append_same <- function(probes, sequences, sequence_type, left = TRUE) {
 }
 
 # append a unique sequence to each target
-append_unique <- function(probes, sequences, sequence_type, rna = TRUE, left = TRUE) {
+append_unique <- function(probes, sequences, sequence_type,
+                          rna = TRUE, left = TRUE, rc = FALSE) {
+  
   # first test whether there are enough primers for every target
   if(rna) {
     if(nrow(sequences) < length(unique(probes$refseq))) {
@@ -44,17 +53,25 @@ append_unique <- function(probes, sequences, sequence_type, rna = TRUE, left = T
     probes_appended_list <- list()
     
     for (i in 1:length(unique_targets)) {
+      # select sequence to be appended
+      primer <- unique_sequences[i]
+      
+      # logic to append RC of sequence if selected
+      if(rc) {
+        primer <- toString(reverseComplement(DNAString(primer)))
+      }
+      
       if(left) {
         probes_appended_list[[i]] <- probes %>%
           filter(refseq == unique_targets[i]) %>%
-          mutate(sequence = str_c(unique_sequences[i], sequence, sep = "TTT"))
+          mutate(sequence = str_c(primer, sequence, sep = "TTT"))
       } else {
         probes_appended_list[[i]] <- probes %>%
           filter(refseq == unique_targets[i]) %>%
-          mutate(sequence = str_c(sequence, unique_sequences[i], sep = "TTT"))
+          mutate(sequence = str_c(sequence, primer, sep = "TTT"))
       }
       
-      # update master table
+      # update master table (I'm appending the 5' -> 3' orientation of the seq)
       master_table[master_table$target == unique_targets[i], sequence_type] <<- unique_sequences[i]
     }
     
@@ -66,17 +83,25 @@ append_unique <- function(probes, sequences, sequence_type, rna = TRUE, left = T
     probes_appended_list <- list()
     
     for (i in 1:length(unique_targets)) {
+      # select sequence to be appended
+      primer <- unique_sequences[i]
+      
+      # logic to append RC of sequence if selected
+      if(rc) {
+        primer <- toString(reverseComplement(DNAString(primer)))
+      }
+      
       if(left) {
         probes_appended_list[[i]] <- probes %>%
           filter(target == unique_targets[i]) %>%
-          mutate(sequence = str_c(unique_sequences[i], sequence, sep = "TTT"))
+          mutate(sequence = str_c(primer, sequence, sep = "TTT"))
       } else {
         probes_appended_list[[i]] <- probes %>%
           filter(target == unique_targets[i]) %>%
-          mutate(sequence = str_c(sequence, unique_sequences[i], sep = "TTT"))
+          mutate(sequence = str_c(sequence, primer, sep = "TTT"))
       }
       
-      # update master table
+      # update master table (I'm appending the 5' -> 3' orientation of the seq)
       master_table[master_table$target == unique_targets[i], sequence_type] <<- unique_sequences[i]
     }
     
@@ -87,7 +112,8 @@ append_unique <- function(probes, sequences, sequence_type, rna = TRUE, left = T
 }
 
 # append multiple unique sequences to each target
-append_multiple <- function(probes, sequences, n_distinct, sequence_type, rna = TRUE, left = TRUE) {
+append_multiple <- function(probes, sequences, n_distinct, sequence_type,
+                            rna = TRUE, left = TRUE, rc = FALSE) {
   # first test whether there are enough primers for N per target
   if(rna) {
     probes_needed <- length(unique(probes$refseq)) * n_distinct
@@ -139,15 +165,23 @@ append_multiple <- function(probes, sequences, n_distinct, sequence_type, rna = 
     current_probe <- 1
     
     while (current_probe <= n_probes) {
-      if(left) {
-        probes_appended_list[[i]][current_probe,] <- probes_appended_list[[i]][current_probe,] %>%
-          mutate(sequence = str_c(unique_sequences[sequence_current], sequence, sep = "TTT"))
-      } else {
-        probes_appended_list[[i]][current_probe,] <- probes_appended_list[[i]][current_probe,] %>%
-          mutate(sequence = str_c(sequence, unique_sequences[sequence_current], sep = "TTT"))
+      # retrieve sequence to append
+      primer <- unique_sequences[sequence_current]
+      
+      # flip if rc is selected
+      if(rc) {
+        primer <- toString(reverseComplement(DNAString(primer)))
       }
       
-      # update master table
+      if(left) {
+        probes_appended_list[[i]][current_probe,] <- probes_appended_list[[i]][current_probe,] %>%
+          mutate(sequence = str_c(primer, sequence, sep = "TTT"))
+      } else {
+        probes_appended_list[[i]][current_probe,] <- probes_appended_list[[i]][current_probe,] %>%
+          mutate(sequence = str_c(sequence, primer, sep = "TTT"))
+      }
+      
+      # update master table (add 5' -> 3' to table)
       master_table_list[[i]][current_probe, sequence_type] <- unique_sequences[sequence_current]
       
       # move to next probe for the target
@@ -191,7 +225,8 @@ hyphen_range <- function(input_ranges) {
 }
 
 # append a unique sequence to each custom range provided
-append_custom <- function(probes, sequences, sequence_type, input_ranges, left = TRUE) {
+append_custom <- function(probes, sequences, sequence_type, input_ranges,
+                          left = TRUE, rc = FALSE) {
   # first ensure that the input ranges cover the probe set
   input_range_numeric <- hyphen_range(input_ranges)
   
@@ -218,15 +253,23 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges, left =
     start <- as.numeric(str_split(input_ranges[i], "-")[[1]][1])
     stop <- as.numeric(str_split(input_ranges[i], "-")[[1]][2])
     
-    if(left) {
-      probes_appended_list[[i]] <- probes[start:stop,] %>%
-        mutate(sequence = str_c(unique_sequences[i], sequence, sep = "TTT"))
-    } else {
-      probes_appended_list[[i]] <- probes[start:stop,] %>%
-        mutate(sequence = str_c(sequence, unique_sequences[i], sep = "TTT"))
+    # retrieve sequence to append
+    primer <- unique_sequences[i]
+    
+    # flip primer sequence if RC is chosen
+    if(rc) {
+      primer <- toString(reverseComplement(DNAString(primer)))
     }
     
-    # update master table
+    if(left) {
+      probes_appended_list[[i]] <- probes[start:stop,] %>%
+        mutate(sequence = str_c(primer, sequence, sep = "TTT"))
+    } else {
+      probes_appended_list[[i]] <- probes[start:stop,] %>%
+        mutate(sequence = str_c(sequence, primer, sep = "TTT"))
+    }
+    
+    # update master table (append 5' -> 3' sequence)
     master_table[start:stop, sequence_type] <<- unique_sequences[i]
   }
   
@@ -238,7 +281,8 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges, left =
 # function that handles the full append operation for a given sequence
 append_handler <- function(appended, choice, sequence_select, seqs_file_path,
                            custom_file_path, append_scheme, design_scheme, 
-                           custom_ranges, sequence_type, n_distinct, left = TRUE) {
+                           custom_ranges, sequence_type, n_distinct,
+                           left = TRUE, rc = FALSE) {
   
   if(choice) {
     # load either the PaintSHOP 5' set or the custom set provided
@@ -252,26 +296,28 @@ append_handler <- function(appended, choice, sequence_select, seqs_file_path,
     }
     
     if(append_scheme == 1) {
-      appended <- append_same(appended, seqs, sequence_type, left = left)
+      appended <- append_same(appended, seqs, sequence_type, left = left, rc = rc)
     } else if(append_scheme == 2) {
       if(design_scheme) {
-        appended <- append_unique(appended, seqs, sequence_type, left = left)
+        appended <- append_unique(appended, seqs, sequence_type, left = left, rc = rc)
       } else {
         appended <- append_unique(appended, seqs, sequence_type,
-                                  rna = FALSE, left = left)
+                                  rna = FALSE, left = left, rc = rc)
       }
     } else if(append_scheme == 3) {
       if(design_scheme) {
-        appended <- append_multiple(appended, seqs, n_distinct, sequence_type, left = left)
+        appended <- append_multiple(appended, seqs, n_distinct, sequence_type, 
+                                    left = left, rc = rc)
       } else {
         appended <- append_multiple(appended, seqs, n_distinct, sequence_type,
-                                  rna = FALSE, left = left)
+                                  rna = FALSE, left = left, rc = rc)
       }
     } else {
       # create a vector of range strings from the input box in UI
       custom_ranges <- str_split(custom_ranges, ", ")[[1]]
       
-      appended <- append_custom(appended, seqs, sequence_type, custom_ranges, left = left)
+      appended <- append_custom(appended, seqs, sequence_type, custom_ranges,
+                                left = left, rc = rc)
     }
   }
   
@@ -279,6 +325,7 @@ append_handler <- function(appended, choice, sequence_select, seqs_file_path,
 }
 
 # special handler for SABER since there are less options
+# note: RC of concatemer is never appended.
 saber_handler <- function(appended, seqs_file_path, append_scheme,
                           design_scheme, custom_ranges, sequence_type, n_distinct) {
   
