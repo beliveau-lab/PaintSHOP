@@ -498,7 +498,7 @@ shinyServer(function(input, output) {
                                "../appending/168.primers.txt", input$fpi_custom_file$datapath, 
                                input$fpi_append_scheme, input$design_scheme, 
                                input$fpi_custom_ranges, "five_prime_inner",
-                               input$fpi_n_per_target, lleft = TRUE, input$fpi_orientation)
+                               input$fpi_n_per_target, left = TRUE, input$fpi_orientation)
     
     # next, the 5' bridge sequence
     appended <- append_handler(appended, input$fpb_choice, input$fpb_sequence_select,
