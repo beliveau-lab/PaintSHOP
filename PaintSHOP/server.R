@@ -170,12 +170,12 @@ shinyServer(function(input, output) {
       
       start <- lapply(coords, function(x) unlist(strsplit(x, "-"))[1])
       stop <- lapply(coords, function(x) unlist(strsplit(x, "-"))[2])
+      strand <- lapply(coord_split, function(x) unlist(strsplit(x, ":"))[3])
       
       coord_df <- tibble("chrom" = unlist(chrom),
                          "start" = unlist(start),
-                         "stop" = unlist(stop))
-      
-      coord_df <- coord_df %>% drop_na()
+                         "stop" = unlist(stop),
+                         "strand" = unlist(strand))
       
       # convert start stop to integers
       coord_df$start <- as.numeric(coord_df$start)
@@ -188,16 +188,30 @@ shinyServer(function(input, output) {
       read_tsv(input$coord_file$datapath,
                col_names = c("chrom",
                              "start",
-                             "stop"))        
+                             "stop",
+                             "strand"))        
     }
   })
   
   # do intersection with coordinates
   coord_intersect <- reactive({
-    fuzzyjoin::genome_join(probes_full(), coordinates(),
-                           by = c("chrom", "start", "stop"),
-                           mode = "inner",
-                           type = "within")
+    intersect <- fuzzyjoin::genome_join(probes_full(), coordinates(),
+                                        by = c("chrom", "start", "stop"),
+                                        mode = "inner",
+                                        type = "within")
+    
+    # iterate over the result of the intersect,
+    # taking the reverse complement if user specified "-"
+    for (i in 1:nrow(intersect)) {
+      # the BED strand from the user must both not be NA and must be "-" to flip sequence
+      if(!is.na(intersect$strand[i]) & intersect$strand[i] == "-") {
+        intersect$sequence[i] = toString(reverseComplement(DNAString(intersect$sequence[i])))
+        intersect$probe_strand[i] = "-"
+      }
+    }
+    
+    # return the result of intersect with probes in specified orientation
+    intersect
   })
   
   # filter intersect based on the currently selected advanced settings
