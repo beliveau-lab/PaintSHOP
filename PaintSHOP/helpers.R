@@ -2,7 +2,7 @@
 append_same <- function(probes, sequences, sequence_type,
                         left = TRUE, rc = FALSE) {
   # retrieve first primer from list
-  primer <- sequences$primer[1]
+  primer <- sequences$seq[1]
   
   # add the 5' -> 3' primer to the master table
   master_table[, sequence_type] <<- primer
@@ -48,7 +48,7 @@ append_unique <- function(probes, sequences, sequence_type,
   # append one of the primers to each target
   if(rna) {
     unique_targets <<- unique(probes$refseq)
-    unique_sequences <<- unique(sequences$primer)
+    unique_sequences <<- unique(sequences$seq)
     
     probes_appended_list <- list()
     
@@ -78,7 +78,7 @@ append_unique <- function(probes, sequences, sequence_type,
     append_result <- bind_rows(probes_appended_list)
   } else {
     unique_targets <<- unique(probes$target)
-    unique_sequences <<- unique(sequences$primer)
+    unique_sequences <<- unique(sequences$seq)
     
     probes_appended_list <- list()
     
@@ -136,7 +136,7 @@ append_multiple <- function(probes, sequences, n_distinct, sequence_type,
     unique_targets <<- unique(probes$target)
   }
   
-  unique_sequences <<- unique(sequences$primer)
+  unique_sequences <<- unique(sequences$seq)
   
   probes_appended_list <- list()
   
@@ -244,7 +244,7 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges,
     stop(error_string)
   }
   
-  unique_sequences <- unique(sequences$primer)
+  unique_sequences <- unique(sequences$seq)
   
   probes_appended_list <- list()
   
@@ -279,22 +279,11 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges,
 }
 
 # function that handles the full append operation for a given sequence
-append_handler <- function(appended, choice, sequence_select, seqs_file_path,
-                           custom_file_path, append_scheme, design_scheme, 
+append_handler <- function(appended, choice, seqs, append_scheme, design_scheme, 
                            custom_ranges, sequence_type, n_distinct,
                            left = TRUE, rc = FALSE) {
   
   if(choice) {
-    # load either the PaintSHOP 5' set or the custom set provided
-    if(sequence_select == 1) {
-      # file path will need to be changed to correct file
-      seqs <- read_tsv(seqs_file_path, 
-                           col_names = c("ID", "primer"))
-    } else {
-      seqs <- read_tsv(custom_file_path,
-                           col_names = c("primer"))
-    }
-    
     if(append_scheme == 1) {
       appended <- append_same(appended, seqs, sequence_type, left = left, rc = rc)
     } else if(append_scheme == 2) {
@@ -329,8 +318,7 @@ append_handler <- function(appended, choice, sequence_select, seqs_file_path,
 saber_handler <- function(appended, seqs_file_path, append_scheme,
                           design_scheme, custom_ranges, sequence_type, n_distinct) {
   
-  seqs <- read_tsv(seqs_file_path, 
-                   col_names = c("primer", "ID"))
+  seqs <- read_tsv(seqs_file_path)
   
   if(append_scheme == 1) {
     appended <- append_same(appended, seqs, sequence_type, left = FALSE)

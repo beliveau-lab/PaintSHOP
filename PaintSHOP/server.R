@@ -507,25 +507,46 @@ shinyServer(function(input, output) {
       master_table <<- tibble(target = appended$target)
     }
     
-    ### NOTE: all sequence file paths will need to change
-    
     # work from inside out, starting with 5' inner primer
-    appended <- append_handler(appended, input$fpi_choice, input$fpi_sequence_select,
-                               "../appending/168.primers.txt", input$fpi_custom_file$datapath, 
+    
+    # first determine whether to append either a custom file, or one of the
+    # PaintSHOP provided files which was selected
+    if(input$fpi_sequence_select == FALSE) {
+      fpi_seqs <- read_tsv(input$fpi_custom_file$datapath,
+                           col_names = c("seq"))
+    } else {
+      fpi_seqs <- read_tsv(input$fpi_sequence_select)
+    }
+    
+    appended <- append_handler(appended, input$fpi_choice, fpi_seqs, 
                                input$fpi_append_scheme, input$design_scheme, 
                                input$fpi_custom_ranges, "five_prime_inner",
                                input$fpi_n_per_target, left = TRUE, input$fpi_orientation)
     
     # next, the 5' bridge sequence
-    appended <- append_handler(appended, input$fpb_choice, input$fpb_sequence_select,
-                               "../appending/168.primers.txt", input$fpb_custom_file$datapath, 
+    
+    if(input$fpb_sequence_select == FALSE) {
+      fpb_seqs <- read_tsv(input$fpb_custom_file$datapath,
+                           col_names = c("seq"))
+    } else {
+      fpb_seqs <- read_tsv(input$fpb_sequence_select)
+    }
+    
+    appended <- append_handler(appended, input$fpb_choice, fpb_seqs, 
                                input$fpb_append_scheme, input$design_scheme, 
                                input$fpb_custom_ranges, "five_prime_bridge",
                                input$fpb_n_per_target, left = TRUE, input$fpb_orientation)
     
     # 5' universal, the last sequence for the 5' side
-    appended <- append_handler(appended, input$fpo_choice, input$fpo_sequence_select,
-                               "../appending/168.primers.txt", input$fpo_custom_file$datapath, 
+    
+    if(input$fpo_sequence_select == FALSE) {
+      fpo_seqs <- read_tsv(input$fpo_custom_file$datapath,
+                           col_names = c("seq"))
+    } else {
+      fpo_seqs <- read_tsv(input$fpo_sequence_select)
+    }
+    
+    appended <- append_handler(appended, input$fpo_choice, fpo_seqs, 
                                input$fpo_append_scheme, input$design_scheme, 
                                input$fpo_custom_ranges, "five_prime_outer",
                                input$fpo_n_per_target, left = TRUE, input$fpo_orientation)
@@ -536,32 +557,53 @@ shinyServer(function(input, output) {
     if(input$tp_appending_choice == 1) {
       # SABER was selected, determine number of concatemers and append
       if(input$saber_x == 1) {
-        saber_file_path <- "../appending/SABER_RC_ordered.txt"
+        saber_file_path <- "appending/saber_1x.tsv"
       } else {
-        saber_file_path <- "../appending/SABER_RC_ordered.txt"
+        saber_file_path <- "appending/saber_2x.tsv"
       }
       
      appended <- saber_handler(appended, saber_file_path, input$saber_append_scheme,
                                input$design_scheme, input$saber_custom_ranges, 
-                               input$saber_n_per_target, "saber") 
+                               "saber", input$saber_n_per_target) 
     } else {
       # work from inside out, starting with 3' inner primer
-      appended <- append_handler(appended, input$tpi_choice, input$tpi_sequence_select,
-                                 "../appending/168.primers.txt", input$tpi_custom_file$datapath, 
+      
+      if(input$tpi_sequence_select == FALSE) {
+        tpi_seqs <- read_tsv(input$tpi_custom_file$datapath,
+                             col_names = c("seq"))
+      } else {
+        tpi_seqs <- read_tsv(input$tpi_sequence_select)
+      }
+      
+      appended <- append_handler(appended, input$tpi_choice, tpi_seqs, 
                                  input$tpi_append_scheme, input$design_scheme, 
                                  input$tpi_custom_ranges, "three_prime_inner", 
                                  input$tpi_n_per_target, left = FALSE, input$tpi_orientation)
       
       # next, the 3' bridge sequence
-      appended <- append_handler(appended, input$tpb_choice, input$tpb_sequence_select,
-                                 "../appending/168.primers.txt", input$tpb_custom_file$datapath, 
+      
+      if(input$tpb_sequence_select == FALSE) {
+        tpb_seqs <- read_tsv(input$tpb_custom_file$datapath,
+                             col_names = c("seq"))
+      } else {
+        tpb_seqs <- read_tsv(input$tpb_sequence_select)
+      }
+      
+      appended <- append_handler(appended, input$tpb_choice, tpb_seqs, 
                                  input$tpb_append_scheme, input$design_scheme, 
                                  input$tpb_custom_ranges, "three_prime_bridge", 
                                  input$tpb_n_per_target, left = FALSE, input$tpb_orientation)
       
       # 3' universal, the last sequence for the 3' side
-      appended <- append_handler(appended, input$tpo_choice, input$tpo_sequence_select,
-                                 "../appending/168.primers.txt", input$tpo_custom_file$datapath, 
+      
+      if(input$tpo_sequence_select == FALSE) {
+        tpo_seqs <- read_tsv(input$tpo_custom_file$datapath,
+                             col_names = c("seq"))
+      } else {
+        tpo_seqs <- read_tsv(input$tpo_sequence_select)
+      }
+      
+      appended <- append_handler(appended, input$tpo_choice, tpo_seqs, 
                                  input$tpo_append_scheme, input$design_scheme, 
                                  input$tpo_custom_ranges, "three_prime_outer", 
                                  input$tpo_n_per_target, left = FALSE, input$tpo_orientation)
