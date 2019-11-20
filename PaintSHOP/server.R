@@ -262,11 +262,13 @@ shinyServer(function(input, output) {
         arrange(off_target, .by_group = TRUE) %>%
         slice(1:input$coord_balance_goal)
       
+      # can keep strand row to test and make sure RC behavior is
+      # correct
       bind_rows(probes_greater_or_eq, probes_add_back) %>%
         dplyr::rename(chrom = chrom.x,
                       start = start.x,
                       stop = stop.x) %>%
-        select(-c(chrom.y, start.y, stop.y))
+        select(-c(chrom.y, start.y, stop.y, strand))
     } else if(input$coord_balance_set == 1) {
       probes_greater_or_eq <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
@@ -284,14 +286,14 @@ shinyServer(function(input, output) {
         dplyr::rename(chrom = chrom.x,
                       start = start.x,
                       stop = stop.x) %>%
-        select(-c(chrom.y, start.y, stop.y))
+        select(-c(chrom.y, start.y, stop.y, strand))
     } else {
       coord_intersect_filter() %>%
         mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
         dplyr::rename(chrom = chrom.x,
                       start = start.x,
                       stop = stop.x) %>%
-        select(-c(chrom.y, start.y, stop.y))
+        select(-c(chrom.y, start.y, stop.y, strand))
     }
   })
   
