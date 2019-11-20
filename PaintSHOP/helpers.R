@@ -4,8 +4,12 @@ append_same <- function(probes, sequences, sequence_type,
   # retrieve first primer from list
   primer <- sequences$seq[1]
   
-  # add the 5' -> 3' primer to the master table
-  master_table[, sequence_type] <<- primer
+  # add the ID and 5' -> 3' primer to the master table
+  primer_id <- sequences$id[1]
+  
+  master_table_entry = str_c(primer_id, primer, sep = "_")
+  
+  master_table[, sequence_type] <<- master_table_entry
   
   # flip primer sequence if RC is chosen
   if(rc) {
@@ -48,7 +52,8 @@ append_unique <- function(probes, sequences, sequence_type,
   # append one of the primers to each target
   if(rna) {
     unique_targets <<- unique(probes$refseq)
-    unique_sequences <<- unique(sequences$seq)
+    unique_sequences <<- unique(sequences)$seq
+    unique_ids <<- unique(sequences)$id
     
     probes_appended_list <- list()
     
@@ -71,8 +76,13 @@ append_unique <- function(probes, sequences, sequence_type,
           mutate(sequence = str_c(sequence, primer, sep = "TTT"))
       }
       
-      # update master table (I'm appending the 5' -> 3' orientation of the seq)
-      master_table[master_table$target == unique_targets[i], sequence_type] <<- unique_sequences[i]
+      # update master table to include ID and sequence appended
+      # (I'm appending the 5' -> 3' orientation of the seq)
+      primer_id <- unique_ids[i]
+      
+      master_table_entry = str_c(primer_id, primer, sep = "_")
+      
+      master_table[master_table$target == unique_targets[i], sequence_type] <<- master_table_entry
     }
     
     append_result <- bind_rows(probes_appended_list)
@@ -101,8 +111,13 @@ append_unique <- function(probes, sequences, sequence_type,
           mutate(sequence = str_c(sequence, primer, sep = "TTT"))
       }
       
-      # update master table (I'm appending the 5' -> 3' orientation of the seq)
-      master_table[master_table$target == unique_targets[i], sequence_type] <<- unique_sequences[i]
+      # update master table to include ID and sequence appended
+      # (I'm appending the 5' -> 3' orientation of the seq)
+      primer_id <- unique_ids[i]
+      
+      master_table_entry = str_c(primer_id, primer, sep = "_")
+      
+      master_table[master_table$target == unique_targets[i], sequence_type] <<- master_table_entry
     }
     
     append_result <- bind_rows(probes_appended_list)
@@ -136,7 +151,8 @@ append_multiple <- function(probes, sequences, n_distinct, sequence_type,
     unique_targets <<- unique(probes$target)
   }
   
-  unique_sequences <<- unique(sequences$seq)
+  unique_sequences <<- unique(sequences)$seq
+  unique_ids <<- unique(sequences)$id
   
   probes_appended_list <- list()
   
@@ -181,8 +197,13 @@ append_multiple <- function(probes, sequences, n_distinct, sequence_type,
           mutate(sequence = str_c(sequence, primer, sep = "TTT"))
       }
       
-      # update master table (add 5' -> 3' to table)
-      master_table_list[[i]][current_probe, sequence_type] <- unique_sequences[sequence_current]
+      # update master table to include ID and sequence appended
+      # (I'm appending the 5' -> 3' orientation of the seq)
+      primer_id <- unique_ids[sequence_current]
+      
+      master_table_entry = str_c(primer_id, primer, sep = "_")
+      
+      master_table_list[[i]][current_probe, sequence_type] <- master_table_entry
       
       # move to next probe for the target
       current_probe <- current_probe + 1
@@ -244,7 +265,8 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges,
     stop(error_string)
   }
   
-  unique_sequences <- unique(sequences$seq)
+  unique_sequences <- unique(sequences)$seq
+  unique_ids <- unique(sequences)$id
   
   probes_appended_list <- list()
   
@@ -269,8 +291,13 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges,
         mutate(sequence = str_c(sequence, primer, sep = "TTT"))
     }
     
-    # update master table (append 5' -> 3' sequence)
-    master_table[start:stop, sequence_type] <<- unique_sequences[i]
+    # update master table to include ID and sequence appended
+    # (I'm appending the 5' -> 3' orientation of the seq)
+    primer_id <- unique_ids[i]
+    
+    master_table_entry = str_c(primer_id, primer, sep = "_")
+    
+    master_table[start:stop, sequence_type] <<- master_table_entry
   }
   
   append_result <- bind_rows(probes_appended_list)
