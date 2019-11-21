@@ -514,6 +514,9 @@ shinyServer(function(input, output) {
     if(input$fpi_sequence_select == FALSE) {
       fpi_seqs <- read_tsv(input$fpi_custom_file$datapath,
                            col_names = c("seq"))
+      
+      # create a unique ID for each custom entered sequence in list
+      fpi_seqs$id <- str_c("custom_if", 1:nrow(fpi_seqs))
     } else {
       fpi_seqs <- read_tsv(input$fpi_sequence_select)
     }
@@ -528,6 +531,9 @@ shinyServer(function(input, output) {
     if(input$fpb_sequence_select == FALSE) {
       fpb_seqs <- read_tsv(input$fpb_custom_file$datapath,
                            col_names = c("seq"))
+      
+      # create a unique ID for each custom entered sequence in list
+      fpb_seqs$id <- str_c("custom_bridge", 1:nrow(fpb_seqs))
     } else {
       fpb_seqs <- read_tsv(input$fpb_sequence_select)
     }
@@ -542,6 +548,9 @@ shinyServer(function(input, output) {
     if(input$fpo_sequence_select == FALSE) {
       fpo_seqs <- read_tsv(input$fpo_custom_file$datapath,
                            col_names = c("seq"))
+      
+      # create a unique ID for each custom entered sequence in list
+      fpo_seqs$id <- str_c("custom_of", 1:nrow(fpo_seqs))
     } else {
       fpo_seqs <- read_tsv(input$fpo_sequence_select)
     }
@@ -571,6 +580,9 @@ shinyServer(function(input, output) {
       if(input$tpi_sequence_select == FALSE) {
         tpi_seqs <- read_tsv(input$tpi_custom_file$datapath,
                              col_names = c("seq"))
+        
+        # create a unique ID for each custom entered sequence in list
+        tpi_seqs$id <- str_c("custom_ir", 1:nrow(tpi_seqs))
       } else {
         tpi_seqs <- read_tsv(input$tpi_sequence_select)
       }
@@ -585,6 +597,9 @@ shinyServer(function(input, output) {
       if(input$tpb_sequence_select == FALSE) {
         tpb_seqs <- read_tsv(input$tpb_custom_file$datapath,
                              col_names = c("seq"))
+        
+        # create a unique ID for each custom entered sequence in list
+        tpb_seqs$id <- str_c("custom_bridge", 1:nrow(tpb_seqs))
       } else {
         tpb_seqs <- read_tsv(input$tpb_sequence_select)
       }
@@ -599,6 +614,9 @@ shinyServer(function(input, output) {
       if(input$tpo_sequence_select == FALSE) {
         tpo_seqs <- read_tsv(input$tpo_custom_file$datapath,
                              col_names = c("seq"))
+        
+        # create a unique ID for each custom entered sequence in list
+        tpo_seqs$id <- str_c("custom_or", 1:nrow(tpo_seqs))
       } else {
         tpo_seqs <- read_tsv(input$tpo_sequence_select)
       }
