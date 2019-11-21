@@ -739,4 +739,45 @@ shinyServer(function(input, output) {
       
     }
   )
+  
+  ##############################################
+  # Resources
+  ##############################################
+  
+  output$annotation_probe_download <- downloadHandler(
+    filename = function() {
+      input$annotation_probe_choice
+    },
+    
+    content = function(file) {
+      file.copy(input$annotation_probe_choice, file)
+    },
+    
+    contentType = "application/zip"
+  )
+  
+  output$raw_probe_download <- downloadHandler(
+    filename = function() {
+      input$raw_probe_choice
+    },
+    
+    content = function(file) {
+      file.copy(input$raw_probe_choice, file)
+    },
+    
+    contentType = "application/zip"
+  )
+  
+  output$appending_raw_download <- downloadHandler(
+    filename = function() {
+      input$appending_raw_choice
+    },
+    
+    content = function(file) {
+      file.copy(input$appending_raw_choice, file)
+    },
+    
+    contentType = "application/zip"
+  )
+  
 })
