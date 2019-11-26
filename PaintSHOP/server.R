@@ -664,9 +664,16 @@ shinyServer(function(input, output) {
         append_info <- ""
         
         for (col in summary_cols) {
-          info <- str_split(col, "_")[[1]]
-          info <- str_c(str_sub(info[1], 1, 1), str_sub(info[2], 1, 1), str_sub(info[3], 1, 1))
-          append_info <- str_c(append_info, info, sep = "_")
+          # determine if the column is saber
+          if(col == "saber") {
+            append_info <- str_c(append_info, col, sep = "_")
+          } else {
+            # determine what was appended
+            info <- str_split(col, "_")[[1]]
+            # parse out first letters for each, i.e. first prime bridge = fpb
+            info <- str_c(str_sub(info[1], 1, 1), str_sub(info[2], 1, 1), str_sub(info[3], 1, 1))
+            append_info <- str_c(append_info, info, sep = "_")
+          }
         }
         
         probes <- probes %>%
