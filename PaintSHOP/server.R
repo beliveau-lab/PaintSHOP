@@ -683,7 +683,7 @@ shinyServer(function(input, output) {
           select(c(order_id, sequence))
       } else {
         # base probes are either RNA or DNA
-        if(input$design_scheme) {
+        if(input$download_design_scheme) {
           # RNA
           probes <- probe_intersect_final()
         } else {
@@ -711,7 +711,7 @@ shinyServer(function(input, output) {
         probes_appended()$appended
       } else {
         # base probes are either RNA or DNA
-        if(input$design_scheme) {
+        if(input$download_design_scheme) {
           # RNA
           probe_intersect_final()
         } else {
