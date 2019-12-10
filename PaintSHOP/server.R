@@ -734,11 +734,15 @@ shinyServer(function(input, output) {
         paste(Sys.Date(), "-PaintSHOP-appending-file", ".txt", sep="")
       } else if(input$download_choice == 4) {
         paste(Sys.Date(), "-PaintSHOP-full-probe-file", ".txt", sep="")
+      } else if(input$download_choice == 5) {
+        paste(Sys.Date(), "-PaintSHOP-citation-file", ".txt", sep="")
       }
       
     },
     content = function(file) {
-      if(input$download_choice == 2) {
+      if(input$download_choice == 5) {
+        file.copy("resources/citations.txt", file)
+      } else if(input$download_choice == 2) {
         write_tsv(download_data(), file, col_names = FALSE)
       } else {
         write_tsv(download_data(), file)
