@@ -83,7 +83,7 @@ shinyServer(function(input, output) {
         group_by(refseq) %>%
         filter(n() >= input$balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$balance_goal)
+        dplyr::slice(1:input$balance_goal)
       
       probes_less <- probe_intersect_filter() %>%
         group_by(refseq) %>%
@@ -95,7 +95,7 @@ shinyServer(function(input, output) {
         filter(refseq %in% targets_less) %>%
         group_by(refseq) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$balance_goal)
+        dplyr::slice(1:input$balance_goal)
       
       bind_rows(probes_greater_or_eq, probes_add_back)
     } else if(input$balance_set == 1) {
@@ -103,7 +103,7 @@ shinyServer(function(input, output) {
         group_by(refseq) %>%
         filter(n() >= input$balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$balance_goal)
+        dplyr::slice(1:input$balance_goal)
       
       probes_less <- probe_intersect_filter() %>%
         group_by(refseq) %>%
@@ -246,7 +246,7 @@ shinyServer(function(input, output) {
         mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
         filter(n() >= input$coord_balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$coord_balance_goal)
+        dplyr::slice(1:input$coord_balance_goal)
       
       probes_less <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
@@ -260,7 +260,7 @@ shinyServer(function(input, output) {
         filter(target %in% targets_less) %>%
         group_by(chrom.y, start.y) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$coord_balance_goal)
+        dplyr::slice(1:input$coord_balance_goal)
       
       # can keep strand row to test and make sure RC behavior is
       # correct
@@ -275,7 +275,7 @@ shinyServer(function(input, output) {
         mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
         filter(n() >= input$coord_balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$coord_balance_goal)
+        dplyr::slice(1:input$coord_balance_goal)
       
       probes_less <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
