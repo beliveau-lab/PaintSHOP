@@ -11,7 +11,7 @@ library(shinyBS)
 
 # set the number of seconds to allow inactivity
 # before a user session is ended
-timeoutSeconds <- 5
+timeoutSeconds <- 600
 
 # a small chunk of JS to detect inactive users
 inactivity <- sprintf(

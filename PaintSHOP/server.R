@@ -48,7 +48,7 @@ shinyServer(function(input, output, session) {
   
   # 1. load in the probe set for the specified genome assembly
   # 2. do intersection with RefSeq
-  probe_intersect <- reactive({
+  probe_intersect <- eventReactive(input$refseq_submit, {
     # vroom makes a fast index instead of immediately loading
     # every row
     probes_refseq <- vroom(input$probeset,
@@ -197,7 +197,7 @@ shinyServer(function(input, output, session) {
   
   # 1. load in the probe set for the specified genome assembly
   # 2. do intersection with coordinates
-  coord_intersect <- reactive({
+  coord_intersect <- eventReactive(input$coord_submit, {
     # vroom makes a fast index instead of immediately loading
     # every row
     probes_full <- vroom(input$probeset_coord,
