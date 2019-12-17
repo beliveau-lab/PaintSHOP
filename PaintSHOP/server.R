@@ -12,23 +12,22 @@ library(Biostrings)
 source("helpers.R")
 
 # Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
+  
+  # logic to end the session for idle users
+  observeEvent(input$timeOut, { 
+    print(paste0("Session (", session$token, ") timed out at: ", Sys.time()))
+    showModal(modalDialog(
+      title = "Timeout",
+      paste("Session timeout due to", input$timeOut, "inactivity -", Sys.time()),
+      footer = NULL
+    ))
+    session$close()
+  })
+  
   ##############################################
   # RefSeq IDs
   ##############################################
-  
-  # load in the probe set for the specified genome assembly
-  probes_refseq <- eventReactive(c(input$refseq_submit,
-                                   input$refseq_file), {
-    # vroom makes a fast index instead of immediately loading
-    # every row
-    vroom(input$probeset,
-          col_names = c("chrom", "start", "stop", 
-                        "sequence", "Tm", "on_target",
-                        "off_target", "repeat_seq", "max_kmer",
-                        "probe_strand", "refseq"),
-          delim = "\t")
-  })
   
   # a reactive element that is a vector of the RefSeq IDs
   # if the user inputs them manually on the UI
@@ -47,9 +46,25 @@ shinyServer(function(input, output) {
     }
   })
   
-  # do intersection with RefSeq
+  # 1. load in the probe set for the specified genome assembly
+  # 2. do intersection with RefSeq
   probe_intersect <- reactive({
-    merge(refseq_accessions(), probes_refseq(), by="refseq")
+    # vroom makes a fast index instead of immediately loading
+    # every row
+    probes_refseq <- vroom(input$probeset,
+                           col_names = c("chrom", "start", "stop", 
+                                         "sequence", "Tm", "on_target",
+                                         "off_target", "repeat_seq", "max_kmer",
+                                         "probe_strand", "refseq"),
+                           delim = "\t")
+    
+    # save the result of intersect with RefSeq
+    intersect_result <- merge(refseq_accessions(), probes_refseq, by="refseq")
+    
+    # explicitly delete the probe file read in to free up RAM
+    rm(probes_refseq)
+    
+    return(intersect_result)
   })
   
   # filter intersect based on the currently selected advanced settings
@@ -144,19 +159,6 @@ shinyServer(function(input, output) {
   # Genomic Coordinates
   ##############################################
   
-  # load in the probe set for the specified genome assembly
-  probes_full <- eventReactive(c(input$coord_submit,
-                                 input$coord_file), {
-    # vroom makes a fast index instead of immediately loading
-    # every row
-    vroom(input$probeset_coord,
-          col_names = c("chrom", "start", "stop", 
-                        "sequence", "Tm", "on_target",
-                        "off_target", "repeat_seq", 
-                        "max_kmer", "probe_strand"),
-          delim = "\t")
-  })
-  
   # a reactive element that is a vector of the RefSeq IDs
   # if the user inputs them manually on the UI
   coordinates <- eventReactive(input$coord_submit, {
@@ -193,12 +195,25 @@ shinyServer(function(input, output) {
     }
   })
   
-  # do intersection with coordinates
+  # 1. load in the probe set for the specified genome assembly
+  # 2. do intersection with coordinates
   coord_intersect <- reactive({
-    intersect <- fuzzyjoin::genome_join(probes_full(), coordinates(),
+    # vroom makes a fast index instead of immediately loading
+    # every row
+    probes_full <- vroom(input$probeset_coord,
+                         col_names = c("chrom", "start", "stop", 
+                                       "sequence", "Tm", "on_target",
+                                       "off_target", "repeat_seq", 
+                                       "max_kmer", "probe_strand"),
+                         delim = "\t")
+    
+    intersect <- fuzzyjoin::genome_join(probes_full, coordinates(),
                                         by = c("chrom", "start", "stop"),
                                         mode = "inner",
                                         type = "within")
+    
+    # explicitly remove probe file to free up RAM
+    rm(probes_full)
     
     # iterate over the result of the intersect,
     # taking the reverse complement if user specified "-"
