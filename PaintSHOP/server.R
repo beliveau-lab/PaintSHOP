@@ -7,6 +7,7 @@ library(tidyverse)
 library(vroom)
 library(fuzzyjoin)
 library(Biostrings)
+library(aws.s3)
 
 # load appending functions
 source("helpers.R")
@@ -49,14 +50,10 @@ shinyServer(function(input, output, session) {
   # 1. load in the probe set for the specified genome assembly
   # 2. do intersection with RefSeq
   probe_intersect <- eventReactive(input$refseq_submit, {
-    # vroom makes a fast index instead of immediately loading
-    # every row
-    probes_refseq <- vroom(input$probeset,
-                           col_names = c("chrom", "start", "stop", 
-                                         "sequence", "Tm", "on_target",
-                                         "off_target", "repeat_seq", "max_kmer",
-                                         "probe_strand", "refseq"),
-                           delim = "\t")
+    # read the selected RefSeq probe set from AWS S3 into memory
+    probes_refseq <- s3read_using(read_probes_refseq,
+                                  object = input$probeset,
+                                  bucket = "paintshop-probes")
     
     # save the result of intersect with RefSeq
     intersect_result <- merge(refseq_accessions(), probes_refseq, by="refseq")
