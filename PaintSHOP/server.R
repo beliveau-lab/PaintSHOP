@@ -756,7 +756,7 @@ shinyServer(function(input, output, session) {
     },
     content = function(file) {
       if(input$download_choice == 5) {
-        file.copy("resources/citations.txt", file)
+        file.copy("citations.txt", file)
       } else if(input$download_choice == 2) {
         write_tsv(download_data(), file, col_names = FALSE)
       } else {
