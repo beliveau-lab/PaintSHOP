@@ -9,6 +9,9 @@ library(fuzzyjoin)
 library(Biostrings)
 library(aws.s3)
 
+# source AWS credentials to access probes
+source("aws-credentials.R")
+
 # load appending functions
 source("helpers.R")
 
