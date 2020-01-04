@@ -5,6 +5,7 @@
 
 accessions.txt
 coordinates.bed
+aws-credentials.R
 
 *.html
 appending/
