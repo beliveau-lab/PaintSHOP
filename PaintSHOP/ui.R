@@ -131,7 +131,7 @@ shinyUI(fluidPage(
                          "2012 Oligopaints hg19" = "all/hg19_2012_all",
                          "iFISH4U 40-mer hg19" = "all/iFISH4U_all")),
            textInput("coord_manual", label = h3("Enter genomic coordinates manually "), 
-                     value = "chr10:26216307-26304562, chr12:111034165-111350554, chr3:62369681-62373550, ..."),
+                     value = "chr10:26216307-26304562, chr12:111034165-111350554, chr3:62369681-62373550"),
            tags$p("(Please enter chr:start-stop for each target. Optionally, you can specify which strand",
                   " to return, by entering chr:start-stop:+ or chr:start-stop:- for a target.)"),
            tags$h3("OR"),
