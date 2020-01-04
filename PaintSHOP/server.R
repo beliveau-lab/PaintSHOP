@@ -184,25 +184,41 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  # 1. load in the probe set for the specified genome assembly
-  # 2. do intersection with coordinates
+  # for each chromosome:
+  # 1. load in the chromosome probe file for the specified genome assembly
+  # 2. do intersection with coordinates for that chromosome
   coord_intersect <- eventReactive(input$coord_submit, {
-    # vroom makes a fast index instead of immediately loading
-    # every row
-    probes_full <- vroom(input$probeset_coord,
-                         col_names = c("chrom", "start", "stop", 
-                                       "sequence", "Tm", "on_target",
-                                       "off_target", "repeat_seq", 
-                                       "max_kmer", "probe_strand"),
-                         delim = "\t")
+    # retrieve the unique chromosome from the coordinates provided by user
+    unique_chroms <- unique(coordinates()$chrom)
     
-    intersect <- fuzzyjoin::genome_join(probes_full, coordinates(),
-                                        by = c("chrom", "start", "stop"),
-                                        mode = "inner",
-                                        type = "within")
+    coord_intersect_results <- list()
     
-    # explicitly remove probe file to free up RAM
-    rm(probes_full)
+    # loop over each chromosome, doing probe intersect iteratively
+    for (i in 1:length(unique_chroms)) {
+      # first retrieve the user coordinates for current chromosome
+      chrom_coords <- coordinates() %>%
+        filter(chrom == unique_chroms[i])
+      
+      # create the name of the chromosome file to read in
+      chrom_path <- paste(input$probeset_coord, "_", unique_chroms[i], ".tsv", sep = "")
+      
+      # read in the chromosome probe file to intersect with from AWS S3
+      chrom_probes <- s3read_using(read_probes_chrom,
+                                   object = chrom_path,
+                                   bucket = "paintshop-probes")
+      
+      # do the intersect for the chromosome, storing result in list
+      coord_intersect_results[[i]] <- fuzzyjoin::genome_join(chrom_probes, chrom_coords,
+                                                             by = c("chrom", "start", "stop"),
+                                                             mode = "inner",
+                                                             type = "within")
+    }
+    
+    # explicitly remove the last chromosome probe file to free up RAM
+    rm(chrom_probes)
+    
+    # create a data frame from the list of results
+    intersect <- bind_rows(coord_intersect_results)
     
     # iterate over the result of the intersect,
     # taking the reverse complement if user specified "-"
