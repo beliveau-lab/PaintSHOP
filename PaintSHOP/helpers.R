@@ -1,3 +1,36 @@
+# TODO: fix this function to load in chromosomes
+read_probes_full <- function(object) {
+  return(vroom(object,
+               col_names = c("chrom", "start", "stop", 
+                             "sequence", "Tm", "on_target",
+                             "off_target", "repeat_seq", 
+                             "max_kmer", "probe_strand"),
+               delim = "\t"))
+}
+
+# A function to read the RefSeq probe sets into memory
+# from the AWS S3 Client package {aws.S3}
+#
+# Arguments
+# ---------
+# object: S3 object
+#   A S3 object provided by the aws.s3::s3read_using()
+#   function
+# ---------
+#
+# Returns
+# -------
+# a tbl_df of the RefSeq probe set selected by the user
+read_probes_refseq <- function(object) {
+  return(vroom(object,
+               col_names = c("chrom", "start", "stop", 
+                             "sequence", "Tm", "on_target",
+                             "off_target", "repeat_seq", 
+                             "max_kmer", "probe_strand",
+                             "refseq"),
+               delim = "\t"))
+}
+
 # Append the same sequence to all probes in a probe set.
 #
 # Arguments
