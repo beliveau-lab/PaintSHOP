@@ -18,17 +18,6 @@ source("helpers.R")
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   
-  # logic to end the session for idle users
-  observeEvent(input$timeOut, { 
-    print(paste0("Session (", session$token, ") timed out at: ", Sys.time()))
-    showModal(modalDialog(
-      title = "Timeout",
-      paste("Session timeout due to", input$timeOut, "inactivity -", Sys.time()),
-      footer = NULL
-    ))
-    session$close()
-  })
-  
   ##############################################
   # RefSeq IDs
   ##############################################

@@ -9,44 +9,11 @@ library(magrittr)
 library(shinycssloaders)
 library(shinyBS)
 
-# set the number of seconds to allow inactivity
-# before a user session is ended
-timeoutSeconds <- 600
-
-# a small chunk of JS to detect inactive users
-inactivity <- sprintf(
-  "function idleTimer() {
-    var t = setTimeout(logout, %s);
-    window.onmousemove = resetTimer; // catches mouse movements
-    window.onmousedown = resetTimer; // catches mouse movements
-    window.onclick = resetTimer;     // catches mouse clicks
-    window.onscroll = resetTimer;    // catches scrolling
-    window.onkeypress = resetTimer;  //catches keyboard actions
-    
-    function logout() {
-      Shiny.setInputValue('timeOut', '%ss')
-    }
-    
-    function resetTimer() {
-      clearTimeout(t);
-      t = setTimeout(logout, %s);  // time is in milliseconds (1000 is 1 second)
-    }
-   }
-    
-  idleTimer();", 
-  timeoutSeconds*1000, 
-  timeoutSeconds, 
-  timeoutSeconds*1000)
-
-# Define UI for application that draws a histogram
+# Define UI for application
 shinyUI(fluidPage(
     
     theme = shinytheme("flatly"),
     useShinyjs(),
-    
-    # load a small JS script defined above to handle detecting
-    # inactive users
-    tags$script(inactivity),
     
     # add CSS to the header to make horizontal rules visible
     tags$head(
