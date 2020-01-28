@@ -72,6 +72,8 @@ shinyUI(fluidPage(
                          selected = TRUE),
             actionButton("refseq_submit", label = tags$h1("Submit"),
                          icon("paper-plane"), width = "100%"),
+            tags$br(),
+            tags$br(),
             tags$p("Please upload a text file with one RefSeq accession per line.",
                    "For example:",
                    tags$br(),
