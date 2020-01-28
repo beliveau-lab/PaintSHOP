@@ -45,7 +45,7 @@ shinyServer(function(input, output, session) {
     # read the selected RefSeq probe set from AWS S3 into memory
     probes_refseq <- s3read_using(read_probes_refseq,
                                   object = input$probeset,
-                                  bucket = "paintshop-probes")
+                                  bucket = "paintshop-bucket")
     
     # save the result of intersect with RefSeq
     intersect_result <- merge(refseq_accessions(), probes_refseq, by="refseq")
@@ -205,7 +205,7 @@ shinyServer(function(input, output, session) {
       # read in the chromosome probe file to intersect with from AWS S3
       chrom_probes <- s3read_using(read_probes_chrom,
                                    object = chrom_path,
-                                   bucket = "paintshop-probes")
+                                   bucket = "paintshop-bucket")
       
       # do the intersect for the chromosome, storing result in list
       coord_intersect_results[[i]] <- fuzzyjoin::genome_join(chrom_probes, chrom_coords,
