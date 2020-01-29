@@ -32,6 +32,11 @@ shinyServer(function(input, output, session) {
       # create a dataframe w/ the accesions
       tibble("refseq" = manual_split)
     } else {
+      # error handling for user file upload
+      if(is.null(input$refseq_file$datapath)) {
+        stop("There was a problem with file upload. ",
+             "Please make sure you have uploaded a valid file.")
+      }
       # read in a user's file and store it as a data frame w/
       # a single row
       read_csv(input$refseq_file$datapath,
@@ -174,6 +179,11 @@ shinyServer(function(input, output, session) {
       
       coord_df
     } else {
+      # error handling for user file upload
+      if(is.null(input$coord_file$datapath)) {
+        stop("There was a problem with file upload. ",
+             "Please make sure you have uploaded a valid file.")
+      }
       # read in a user's file and store it as a data frame w/
       # rows to do intersect
       read_tsv(input$coord_file$datapath,
