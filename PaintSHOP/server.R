@@ -273,7 +273,7 @@ shinyServer(function(input, output, session) {
     if(input$coord_balance_set == 2) {
       probes_greater_or_eq <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y)) %>%
         filter(n() >= input$coord_balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
         dplyr::slice(1:input$coord_balance_goal)
@@ -281,12 +281,12 @@ shinyServer(function(input, output, session) {
       probes_less <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
         filter(n() < input$coord_balance_goal) %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y))
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y))
       
       targets_less <- unique(probes_less$target)
       
       probes_add_back <- coord_intersect() %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y)) %>%
         filter(target %in% targets_less) %>%
         group_by(chrom.y, start.y) %>%
         arrange(off_target, .by_group = TRUE) %>%
@@ -302,7 +302,7 @@ shinyServer(function(input, output, session) {
     } else if(input$coord_balance_set == 1) {
       probes_greater_or_eq <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y)) %>%
         filter(n() >= input$coord_balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
         dplyr::slice(1:input$coord_balance_goal)
@@ -310,7 +310,7 @@ shinyServer(function(input, output, session) {
       probes_less <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
         filter(n() < input$coord_balance_goal) %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y))
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y))
       
       bind_rows(probes_greater_or_eq, probes_less) %>%
         dplyr::rename(chrom = chrom.x,
@@ -319,7 +319,7 @@ shinyServer(function(input, output, session) {
         select(-c(chrom.y, start.y, stop.y, strand))
     } else {
       coord_intersect_filter() %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y)) %>%
         dplyr::rename(chrom = chrom.x,
                       start = start.x,
                       stop = stop.x) %>%
