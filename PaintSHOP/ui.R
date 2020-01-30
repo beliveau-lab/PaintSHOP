@@ -427,6 +427,19 @@ shinyUI(fluidPage(
           )
         )
       ),
+      tabPanel("Resources Available",
+               "As part of our effort to provide open resources for the oligo-FISH community, ",
+               "all probe sets and appending sets used in the backend of PaintSHOP are available ",
+               "for download here: ", 
+               tags$a("link", href = "https://github.com/elliothershberg/PaintSHOP_resources",
+                      target = "_blank"),
+               tags$br(),
+               tags$br(),
+               "Our goal in designing PaintSHOP was to make easy things easy, and hard things possible. ",
+               "A key use case of the resources we have made available is to download the sets of sequences ",
+               "that can be appended, create custom appending files, and use those files in PaintSHOP. ",
+               "With this flexibility, practically all appending design schemes should be possible."
+      ),
       tabPanel("Documentation",
         tags$h3("Click on a topic to expand the description", align = "center"),
         tags$br(),
