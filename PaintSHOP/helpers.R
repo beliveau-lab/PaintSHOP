@@ -1,11 +1,90 @@
-# append same sequence to all probes
+# A function to read the chromosome probe files into memory
+# from the AWS S3 Client package {aws.S3}
+#
+# Arguments
+# ---------
+# object: S3 object
+#   A S3 object provided by the aws.s3::s3read_using()
+#   function
+# ---------
+#
+# Returns
+# -------
+# a tbl_df of the RefSeq probe set selected by the user
+read_probes_chrom <- function(object) {
+  return(vroom(object,
+               col_names = c("chrom", "start", "stop", 
+                             "sequence", "Tm", "on_target",
+                             "off_target", "repeat_seq", 
+                             "max_kmer", "probe_strand"),
+               delim = "\t"))
+}
+
+# A function to read the RefSeq probe sets into memory
+# from the AWS S3 Client package {aws.S3}
+#
+# Arguments
+# ---------
+# object: S3 object
+#   A S3 object provided by the aws.s3::s3read_using()
+#   function
+# ---------
+#
+# Returns
+# -------
+# a tbl_df of the RefSeq probe set selected by the user
+read_probes_refseq <- function(object) {
+  return(vroom(object,
+               col_names = c("chrom", "start", "stop", 
+                             "sequence", "Tm", "on_target",
+                             "off_target", "repeat_seq", 
+                             "max_kmer", "probe_strand",
+                             "refseq"),
+               delim = "\t"))
+}
+
+# Append the same sequence to all probes in a probe set.
+#
+# Arguments
+# ---------
+# probes: tbl_df
+#   A data frame of the probes to append sequences to
+# sequences: tbl_df
+#   A data frame of the sequences to append to the probes
+# sequence_type: character
+#   A character string describing what type of sequence
+#   is being appended
+# left: logical
+#   A logical value determing whether to append to the
+#   5' side of the sequence (left = TRUE) or the
+#   3' side of the sequence (left = FALSE)
+# rc: logical
+#   A logical value determining whether to append the
+#   reverse complement of the sequence being appended
+#   (rc = TRUE), or to append the sequence in the
+#   orientation that it already is in (rc = FALSE)
+# ---------
+#
+# Returns
+# -------
+# probes_appended: tbl_df
+#   The probe data frame with the sequence appended.
+#
+# Also updates the master table that is a global variable
+# in the PaintSHOP application keeping track of what
+# sequences have been appended to the probe set.
+# -------
 append_same <- function(probes, sequences, sequence_type,
                         left = TRUE, rc = FALSE) {
   # retrieve first primer from list
-  primer <- sequences$primer[1]
+  primer <- sequences$seq[1]
   
-  # add the 5' -> 3' primer to the master table
-  master_table[, sequence_type] <<- primer
+  # add the ID and 5' -> 3' primer to the master table
+  primer_id <- sequences$id[1]
+  
+  master_table_entry = str_c(primer_id, primer, sep = "_")
+  
+  master_table[, sequence_type] <<- master_table_entry
   
   # flip primer sequence if RC is chosen
   if(rc) {
@@ -24,7 +103,46 @@ append_same <- function(probes, sequences, sequence_type,
   return(probes_appended)
 }
 
-# append a unique sequence to each target
+# Append a unique sequence to the probes for each unique
+# target in a probe set. For example, if there are
+# sequences A, B, and C, and there are targets X, Y, and
+# Z with respective probes (X1, X2, X3), (Y1, Y2, Y3),
+# and (Z1, Z2, Z3), this function will return
+# A-X1, A-X2, A-X3, B-Y1, B-Y2, B-Y3, C-Z1, C-Z2, C-Z3.
+#
+# Arguments
+# ---------
+# probes: tbl_df
+#   A data frame of the probes to append sequences to
+# sequences: tbl_df
+#   A data frame of the sequences to append to the probes
+# sequence_type: character
+#   A character string describing what type of sequence
+#   is being appended
+# rna: logical
+#   A logical value determing whether the targets are
+#   RefSeq values (rna = TRUE) or are chromosomal
+#   coordinates (rna = FALSE).
+# left: logical
+#   A logical value determing whether to append to the
+#   5' side of the sequence (left = TRUE) or the
+#   3' side of the sequence (left = FALSE)
+# rc: logical
+#   A logical value determining whether to append the
+#   reverse complement of the sequence being appended
+#   (rc = TRUE), or to append the sequence in the
+#   orientation that it already is in (rc = FALSE)
+# ---------
+#
+# Returns
+# -------
+# append_result: tbl_df
+#   The probe data frame with the sequences appended.
+#
+# Also updates the master table that is a global variable
+# in the PaintSHOP application keeping track of what
+# sequences have been appended to the probe set.
+# -------
 append_unique <- function(probes, sequences, sequence_type,
                           rna = TRUE, left = TRUE, rc = FALSE) {
   
@@ -48,7 +166,8 @@ append_unique <- function(probes, sequences, sequence_type,
   # append one of the primers to each target
   if(rna) {
     unique_targets <<- unique(probes$refseq)
-    unique_sequences <<- unique(sequences$primer)
+    unique_sequences <<- unique(sequences)$seq
+    unique_ids <<- unique(sequences)$id
     
     probes_appended_list <- list()
     
@@ -71,14 +190,19 @@ append_unique <- function(probes, sequences, sequence_type,
           mutate(sequence = str_c(sequence, primer, sep = "TTT"))
       }
       
-      # update master table (I'm appending the 5' -> 3' orientation of the seq)
-      master_table[master_table$target == unique_targets[i], sequence_type] <<- unique_sequences[i]
+      # update master table to include ID and sequence appended
+      # (I'm appending the 5' -> 3' orientation of the seq)
+      primer_id <- unique_ids[i]
+      
+      master_table_entry = str_c(primer_id, primer, sep = "_")
+      
+      master_table[master_table$target == unique_targets[i], sequence_type] <<- master_table_entry
     }
     
     append_result <- bind_rows(probes_appended_list)
   } else {
     unique_targets <<- unique(probes$target)
-    unique_sequences <<- unique(sequences$primer)
+    unique_sequences <<- unique(sequences$seq)
     
     probes_appended_list <- list()
     
@@ -101,8 +225,13 @@ append_unique <- function(probes, sequences, sequence_type,
           mutate(sequence = str_c(sequence, primer, sep = "TTT"))
       }
       
-      # update master table (I'm appending the 5' -> 3' orientation of the seq)
-      master_table[master_table$target == unique_targets[i], sequence_type] <<- unique_sequences[i]
+      # update master table to include ID and sequence appended
+      # (I'm appending the 5' -> 3' orientation of the seq)
+      primer_id <- unique_ids[i]
+      
+      master_table_entry = str_c(primer_id, primer, sep = "_")
+      
+      master_table[master_table$target == unique_targets[i], sequence_type] <<- master_table_entry
     }
     
     append_result <- bind_rows(probes_appended_list)
@@ -111,7 +240,50 @@ append_unique <- function(probes, sequences, sequence_type,
   return(append_result)
 }
 
-# append multiple unique sequences to each target
+# Append n unique sequences to the probes for each unique
+# target in a probe set. For example, if there are
+# sequences A, B, C, D, E, F, G, H, and I,
+# and there are targets X, Y, and Z with respective probes 
+# (X1, X2, X3), (Y1, Y2, Y3), and (Z1, Z2, Z3), 
+# if n = 3, this function will return
+# A-X1, B-X2, C-X3, D-Y1, E-Y2, F-Y3, G-Z1, H-Z2, I-Z3.
+#
+# Arguments
+# ---------
+# probes: tbl_df
+#   A data frame of the probes to append sequences to
+# sequences: tbl_df
+#   A data frame of the sequences to append to the probes
+# n_distinct: double
+#   Numerical value indicating how many sequences should
+#   added to each target
+# sequence_type: character
+#   A character string describing what type of sequence
+#   is being appended
+# rna: logical
+#   A logical value determing whether the targets are
+#   RefSeq values (rna = TRUE) or are chromosomal
+#   coordinates (rna = FALSE).
+# left: logical
+#   A logical value determing whether to append to the
+#   5' side of the sequence (left = TRUE) or the
+#   3' side of the sequence (left = FALSE)
+# rc: logical
+#   A logical value determining whether to append the
+#   reverse complement of the sequence being appended
+#   (rc = TRUE), or to append the sequence in the
+#   orientation that it already is in (rc = FALSE)
+# ---------
+#
+# Returns
+# -------
+# append_result: tbl_df
+#   The probe data frame with the sequences appended.
+#
+# Also updates the master table that is a global variable
+# in the PaintSHOP application keeping track of what
+# sequences have been appended to the probe set.
+# -------
 append_multiple <- function(probes, sequences, n_distinct, sequence_type,
                             rna = TRUE, left = TRUE, rc = FALSE) {
   # first test whether there are enough primers for N per target
@@ -136,7 +308,8 @@ append_multiple <- function(probes, sequences, n_distinct, sequence_type,
     unique_targets <<- unique(probes$target)
   }
   
-  unique_sequences <<- unique(sequences$primer)
+  unique_sequences <<- unique(sequences)$seq
+  unique_ids <<- unique(sequences)$id
   
   probes_appended_list <- list()
   
@@ -181,8 +354,13 @@ append_multiple <- function(probes, sequences, n_distinct, sequence_type,
           mutate(sequence = str_c(sequence, primer, sep = "TTT"))
       }
       
-      # update master table (add 5' -> 3' to table)
-      master_table_list[[i]][current_probe, sequence_type] <- unique_sequences[sequence_current]
+      # update master table to include ID and sequence appended
+      # (I'm appending the 5' -> 3' orientation of the seq)
+      primer_id <- unique_ids[sequence_current]
+      
+      master_table_entry = str_c(primer_id, primer, sep = "_")
+      
+      master_table_list[[i]][current_probe, sequence_type] <- master_table_entry
       
       # move to next probe for the target
       current_probe <- current_probe + 1
@@ -208,7 +386,23 @@ append_multiple <- function(probes, sequences, n_distinct, sequence_type,
   return(append_result)
 }
 
-# convert a vector of ranges "x:y" into the numeric range they represent
+# Convert a vector of ranges "x:y" into the numeric range they represent
+#
+# Arguments
+# ---------
+# input_ranges: character vector
+#   a character vector with each character in the form "x:y"
+#   representing a numeric range
+# ---------
+#
+# Returns
+# -------
+# range_vector: integer vector
+#   the integer range the character strings represented as a 
+#   numerical vector. For example, the vector 
+#   chr [1:2] "1:5" "6:10" would be converted to
+#   int [1:10] 1 2 3 4 5 6 7 8 9 10
+# -------
 hyphen_range <- function(input_ranges) {
   range_vector <- c()
   
@@ -224,7 +418,41 @@ hyphen_range <- function(input_ranges) {
   return(range_vector)
 }
 
-# append a unique sequence to each custom range provided
+# Append a unique sequence to the probes for each custom
+# range provided by the PaintSHOP user.
+#
+# Arguments
+# ---------
+# probes: tbl_df
+#   A data frame of the probes to append sequences to
+# sequences: tbl_df
+#   A data frame of the sequences to append to the probes
+# sequence_type: character
+#   A character string describing what type of sequence
+#   is being appended
+# input_ranges: character vector
+#   a character vector with each character in the form "x:y"
+#   representing a numeric range  
+# left: logical
+#   A logical value determing whether to append to the
+#   5' side of the sequence (left = TRUE) or the
+#   3' side of the sequence (left = FALSE)
+# rc: logical
+#   A logical value determining whether to append the
+#   reverse complement of the sequence being appended
+#   (rc = TRUE), or to append the sequence in the
+#   orientation that it already is in (rc = FALSE)
+# ---------
+#
+# Returns
+# -------
+# append_result: tbl_df
+#   The probe data frame with the sequences appended.
+#
+# Also updates the master table that is a global variable
+# in the PaintSHOP application keeping track of what
+# sequences have been appended to the probe set.
+# -------
 append_custom <- function(probes, sequences, sequence_type, input_ranges,
                           left = TRUE, rc = FALSE) {
   # first ensure that the input ranges cover the probe set
@@ -244,7 +472,8 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges,
     stop(error_string)
   }
   
-  unique_sequences <- unique(sequences$primer)
+  unique_sequences <- unique(sequences)$seq
+  unique_ids <- unique(sequences)$id
   
   probes_appended_list <- list()
   
@@ -269,8 +498,13 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges,
         mutate(sequence = str_c(sequence, primer, sep = "TTT"))
     }
     
-    # update master table (append 5' -> 3' sequence)
-    master_table[start:stop, sequence_type] <<- unique_sequences[i]
+    # update master table to include ID and sequence appended
+    # (I'm appending the 5' -> 3' orientation of the seq)
+    primer_id <- unique_ids[i]
+    
+    master_table_entry = str_c(primer_id, primer, sep = "_")
+    
+    master_table[start:stop, sequence_type] <<- master_table_entry
   }
   
   append_result <- bind_rows(probes_appended_list)
@@ -278,23 +512,59 @@ append_custom <- function(probes, sequences, sequence_type, input_ranges,
   return(append_result)
 }
 
-# function that handles the full append operation for a given sequence
-append_handler <- function(appended, choice, sequence_select, seqs_file_path,
-                           custom_file_path, append_scheme, design_scheme, 
+# A wrapper function to handle calling specific appending
+# functions in the PaintSHOP application.
+#
+# Arguments
+# ---------
+# appended: tbl_df
+#   A data frame of the probes to append sequences to
+# choice: double
+#   An integer representing whether the user decided
+#   to append a sequence
+# seqs: tbl_df
+#   A data frame containg the sequences to append
+# append_scheme: double
+#   A numeric value representing which type of appending
+#   scheme was selected by the user in the app
+#   (1 = same for all probes,
+#    2 = unique for each target,
+#    3 = multiple per target
+#    4 = custom ranges)
+# design_scheme: logical
+#   a logical value representing which type of probe design
+#   the user chose. TRUE = RNA, FALSE = DNA
+# custom_ranges: character vector
+#   a character vector with each character in the form "x:y"
+#   representing a numeric range
+# sequence_type: character
+#   A character string describing what type of sequence
+#   is being appended
+# left: logical
+#   A logical value determing whether to append to the
+#   5' side of the sequence (left = TRUE) or the
+#   3' side of the sequence (left = FALSE)
+# rc: logical
+#   A logical value determining whether to append the
+#   reverse complement of the sequence being appended
+#   (rc = TRUE), or to append the sequence in the
+#   orientation that it already is in (rc = FALSE)
+# ---------
+#
+# Returns
+# -------
+# appended: tbl_df
+#   The probe data frame with the sequences appended.
+#
+# Also updates the master table that is a global variable
+# in the PaintSHOP application keeping track of what
+# sequences have been appended to the probe set.
+# -------
+append_handler <- function(appended, choice, seqs, append_scheme, design_scheme, 
                            custom_ranges, sequence_type, n_distinct,
                            left = TRUE, rc = FALSE) {
   
   if(choice) {
-    # load either the PaintSHOP 5' set or the custom set provided
-    if(sequence_select == 1) {
-      # file path will need to be changed to correct file
-      seqs <- read_tsv(seqs_file_path, 
-                           col_names = c("ID", "primer"))
-    } else {
-      seqs <- read_tsv(custom_file_path,
-                           col_names = c("primer"))
-    }
-    
     if(append_scheme == 1) {
       appended <- append_same(appended, seqs, sequence_type, left = left, rc = rc)
     } else if(append_scheme == 2) {
@@ -324,13 +594,53 @@ append_handler <- function(appended, choice, sequence_select, seqs_file_path,
   return(appended)
 }
 
-# special handler for SABER since there are less options
-# note: RC of concatemer is never appended.
+# A wrapper function to handle appending SABER sequences
+# in the PaintSHOP application.
+#
+# Arguments
+# ---------
+# appended: tbl_df
+#   A data frame of the probes to append sequences to
+# choice: double
+#   An integer representing whether the user decided
+#   to append a sequence
+# seqs: tbl_df
+#   A data frame containg the sequences to append
+# append_scheme: double
+#   A numeric value representing which type of appending
+#   scheme was selected by the user in the app
+#   (1 = same for all probes,
+#    2 = unique for each target,
+#    3 = multiple per target
+#    4 = custom ranges)
+# design_scheme: logical
+#   a logical value representing which type of probe design
+#   the user chose. TRUE = RNA, FALSE = DNA
+# custom_ranges: character vector
+#   a character vector with each character in the form "x:y"
+#   representing a numeric range
+# sequence_type: character
+#   A character string describing what type of sequence
+#   is being appended
+# ---------
+#
+# Returns
+# -------
+# appended: tbl_df
+#   The probe data frame with the sequences appended.
+#
+# Also updates the master table that is a global variable
+# in the PaintSHOP application keeping track of what
+# sequences have been appended to the probe set.
+#
+# Note: SABER sequences are always appending in the same
+# orientation to the 3' side, so there are no left or rc
+# parameters needed.
+# -------
 saber_handler <- function(appended, seqs_file_path, append_scheme,
                           design_scheme, custom_ranges, sequence_type, n_distinct) {
   
-  seqs <- read_tsv(seqs_file_path, 
-                   col_names = c("primer", "ID"))
+  seqs <- read_tsv(seqs_file_path)
   
   if(append_scheme == 1) {
     appended <- append_same(appended, seqs, sequence_type, left = FALSE)

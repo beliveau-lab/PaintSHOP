@@ -1,0 +1,119 @@
+PaintSHOP builds on the work of a wide variety publications. We want to make it easy for you to cite the publications for the respective resources you may have used in building your probe set.
+
+##################################################################
+
+If you used PaintSHOP in your research, please cite our manuscript:
+
+
+##################################################################
+
+If you used OligoMiner probes, please cite the OligoMiner publication:
+
+Beliveau, B. J. et al. OligoMiner provides a rapid, flexible environment for the design of genome-scale oligonucleotide in situ hybridization probes. Proc. Natl. Acad. Sci. U. S. A. (2018). doi:10.1073/pnas.1714530115
+
+BibTeX entry:
+
+@article{Beliveau2018,
+abstract = {Oligonucleotide (oligo)-based FISH has emerged as an important tool for the study of chromosome organization and gene expression and has been empowered by the commercial availability of highly complex pools of oligos. However, a dedicated bioinformatic design utility has yet to be created specifically for the purpose of identifying optimal oligo FISH probe sequences on the genome-wide scale. Here, we introduce OligoMiner, a rapid and robust computational pipeline for the genome-scale design of oligo FISH probes that affords the scientist exact control over the parameters of each probe. Our streamlined method uses standard bioinformatic file formats, allowing users to seamlessly integrate new and existing utilities into the pipeline as desired, and introduces a method for evaluating the specificity of each probe molecule that connects simulated hybridization energetics to rapidly generated sequence alignments using supervised machine learning. We demonstrate the scalability of our approach by performing genome-scale probe discovery in numerous model organism genomes and showcase the performance of the resulting probes with diffraction-limited and single-molecule superresolution imaging of chromosomal and RNA targets. We anticipate that this pipeline will make the FISH probe design process much more accessible and will more broadly facilitate the design of pools of hybridization probes for a variety of applications.},
+author = {Beliveau, Brian J. and Kishi, Jocelyn Y. and Nir, Guy and Sasaki, Hiroshi M. and Saka, Sinem K. and Nguyen, Son C. and ting Wu, Chao and Yin, Peng},
+doi = {10.1073/pnas.1714530115},
+issn = {10916490},
+journal = {Proceedings of the National Academy of Sciences of the United States of America},
+keywords = {FISH,In situ,Oligo,Oligonucleotide,Superresolution},
+title = {{OligoMiner provides a rapid, flexible environment for the design of genome-scale oligonucleotide in situ hybridization probes}},
+year = {2018}
+}
+
+##################################################################
+
+If you used 2012 Oligopaint probes, please cite the following publication:
+
+Beliveau, B. J. et al. Versatile design and synthesis platform for visualizing genomes with Oligopaint FISH probes. Proc. Natl. Acad. Sci. U. S. A. (2012). doi:10.1073/pnas.1213818110
+
+BibTeX entry:
+
+@article{Beliveau2012,
+abstract = {A host of observations demonstrating the relationship between nuclear architecture and processes such as gene expression have led to a number of new technologies for interrogating chromosome positioning. Whereas some of these technologies reconstruct intermolecular interactions, others have enhanced our ability to visualize chromosomes in situ. Here, we describe an oligonucleotide- and PCR-based strategy for fluorescence in situ hybridization (FISH) and a bioinformatic platform that enables this technology to be extended to any organism whose genome has been sequenced. The oligonucleotide probes are renewable, highly efficient, and able to robustly label chromosomes in cell culture, fixed tissues, and metaphase spreads. Our method gives researchers precise control over the sequences they target and allows for single and multicolor imaging of regions ranging from tens of kilobases to megabases with the same basic protocol. We anticipate this technology will lead to an enhanced ability to visualize interphase and metaphase chromosomes.},
+author = {Beliveau, Brian J. and Joyce, Eric F. and Apostolopoulos, Nicholas and Yilmaz, Feyza and Fonseka, Chamith Y. and McCole, Ruth B. and Chang, Yiming and Li, Jin Billy and Senaratne, Tharanga Niroshini and Williams, Benjamin R. and Rouillard, Jean Marie and Wu, Chao Ting},
+doi = {10.1073/pnas.1213818110},
+issn = {00278424},
+journal = {Proceedings of the National Academy of Sciences of the United States of America},
+title = {{Versatile design and synthesis platform for visualizing genomes with Oligopaint FISH probes}},
+year = {2012}
+}
+
+##################################################################
+
+If you used iFISH4U probes, please cite the following publication:
+
+Gelali, E. et al. iFISH is a publically available resource enabling versatile DNA FISH to study genome architecture. Nat. Commun. (2019). doi:10.1038/s41467-019-09616-w
+
+BibTeX entry:
+
+@article{Gelali2019,
+abstract = {{\textcopyright} 2019, The Author(s). DNA fluorescence in situ hybridization (DNA FISH) is a powerful method to study chromosomal organization in single cells. At present, there is a lack of free resources of DNA FISH probes and probe design tools which can be readily applied. Here, we describe iFISH, an open-source repository currently comprising 380 DNA FISH probes targeting multiple loci on the human autosomes and chromosome X, as well as a genome-wide database of optimally designed oligonucleotides and a freely accessible web interface (http://ifish4u.org) that can be used to design DNA FISH probes. We individually validate 153 probes and take advantage of our probe repository to quantify the extent of intermingling between multiple heterologous chromosome pairs, showing a much higher extent of intermingling in human embryonic stem cells compared to fibroblasts. In conclusion, iFISH is a versatile and expandable resource, which can greatly facilitate the use of DNA FISH in research and diagnostics.},
+author = {Gelali, Eleni and Girelli, Gabriele and Matsumoto, Masahiro and Wernersson, Erik and Custodio, Joaquin and Mota, Ana and Schweitzer, Maud and Ferenc, Katalin and Li, Xinge and Mirzazadeh, Reza and Agostini, Federico and Schell, John P. and Lanner, Fredrik and Crosetto, Nicola and Bienko, Magda},
+doi = {10.1038/s41467-019-09616-w},
+issn = {20411723},
+journal = {Nature Communications},
+title = {{iFISH is a publically available resource enabling versatile DNA FISH to study genome architecture}},
+year = {2019}
+}
+
+##################################################################
+
+If you used MERFISH sequences in your designs, please cite the following publication:
+
+Chen, K. H., Boettiger, A. N., Moffitt, J. R., Wang, S. & Zhuang, X. Spatially resolved, highly multiplexed RNA profiling in single cells. Science (80-. ). (2015). doi:10.1126/science.aaa6090
+
+BibTeX entry:
+
+@article{Chen2015,
+abstract = {Knowledge of the expression profile and spatial landscape of the transcriptome in individual cells is essential for understanding the rich repertoire of cellular behaviors. Here we report multiplexed error-robust fluorescence in situ hybridization (MERFISH), a single-molecule imaging approach that allows the copy numbers and spatial localizations of thousands of RNA species to be determined in single cells. Using error-robust encoding schemes to combat single-molecule labeling and detection errors, we demonstrated the imaging of 100 to 1000 unique RNA species in hundreds of individual cells. Correlation analysis of the {\~{}}10(4) to 10(6) pairs of genes allowed us to constrain gene regulatory networks, predict novel functions for many unannotated genes, and identify distinct spatial distribution patterns of RNAs that correlate with properties of the encoded proteins.},
+author = {Chen, Kok Hao and Boettiger, Alistair N. and Moffitt, Jeffrey R. and Wang, Siyuan and Zhuang, Xiaowei},
+doi = {10.1126/science.aaa6090},
+issn = {10959203},
+journal = {Science},
+title = {{Spatially resolved, highly multiplexed RNA profiling in single cells}},
+year = {2015}
+}
+
+##################################################################
+
+If you used bridge sequences from Mateo et al. 2019, please cite the following publication:
+
+Mateo, L. J. et al. Visualizing DNA folding and RNA in embryos at single-cell resolution. Nature (2019). doi:10.1038/s41586-019-1035-4
+
+BibTeX entry:
+
+@article{Mateo2019,
+abstract = {The establishment of cell types during development requires precise interactions between genes and distal regulatory sequences. We have a limited understanding of how these interactions look in three dimensions, vary across cell types in complex tissue, and relate to transcription. Here we describe optical reconstruction of chromatin architecture (ORCA), a method that can trace the DNA path in single cells with nanoscale accuracy and genomic resolution reaching two kilobases. We used ORCA to study a Hox gene cluster in cryosectioned Drosophila embryos and labelled around 30 RNA species in parallel. We identified cell-type-specific physical borders between active and Polycomb-repressed DNA, and unexpected Polycomb-independent borders. Deletion of Polycomb-independent borders led to ectopic enhancer–promoter contacts, aberrant gene expression, and developmental defects. Together, these results illustrate an approach for high-resolution, single-cell DNA domain analysis in vivo, identify domain structures that change with cell identity, and show that border elements contribute to the formation of physical domains in Drosophila.},
+author = {Mateo, Leslie J. and Murphy, Sedona E. and Hafner, Antonina and Cinquini, Isaac S. and Walker, Carly A. and Boettiger, Alistair N.},
+doi = {10.1038/s41586-019-1035-4},
+issn = {14764687},
+journal = {Nature},
+title = {{Visualizing DNA folding and RNA in embryos at single-cell resolution}},
+year = {2019}
+}
+
+##################################################################
+
+If you used bridge sequences from Xia et al. 2019, please cite the following publication:
+
+Xia, C., Fan, J., Emanuel, G., Hao, J. & Zhuang, X. Spatial transcriptome profiling by MERFISH reveals subcellular RNA compartmentalization and cell cycle-dependent gene expression. Proc. Natl. Acad. Sci. U. S. A. (2019). doi:10.1073/pnas.1912459116
+
+BibTeX entry:
+
+@article{Xia2019,
+abstract = {The expression profiles and spatial distributions of RNAs regulate many cellular functions. Image-based transcriptomic approaches provide powerful means to measure both expression and spatial information of RNAs in individual cells within their native environment. Among these approaches, multiplexed error-robust fluorescence in situ hybridization (MERFISH) has achieved spatially resolved RNA quantification at transcriptome scale by massively multiplexing single-molecule FISH measurements. Here, we increased the gene throughput of MERFISH and demonstrated simultaneous measurements of RNA transcripts from ∼10,000 genes in individual cells with ∼80{\%} detection efficiency and ∼4{\%} misidentification rate. We combined MERFISH with cellular structure imaging to determine subcellular compartmentalization of RNAs. We validated this approach by showing enrichment of secretome transcripts at the endoplasmic reticulum, and further revealed enrichment of long noncoding RNAs, RNAs with retained introns, and a subgroup of protein-coding mRNAs in the cell nucleus. Leveraging spatially resolved RNA profiling, we developed an approach to determine RNA velocity in situ using the balance of nuclear versus cytoplasmic RNA counts. We applied this approach to infer pseudotime ordering of cells and identified cells at different cell-cycle states, revealing ∼1,600 genes with putative cell cycle-dependent expression and a gradual transcription profile change as cells progress through cell-cycle stages. Our analysis further revealed cell cycle-dependent and cell cycle-independent spatial heterogeneity of transcriptionally distinct cells. We envision that the ability to perform spatially resolved, genome-wide RNA profiling with high detection efficiency and accuracy by MERFISH could help address a wide array of questions ranging from the regulation of gene expression in cells to the development of cell fate and organization in tissues.},
+author = {Xia, Chenglong and Fan, Jean and Emanuel, George and Hao, Junjie and Zhuang, Xiaowei},
+doi = {10.1073/pnas.1912459116},
+issn = {10916490},
+journal = {Proceedings of the National Academy of Sciences of the United States of America},
+keywords = {Fluorescence in situ hybridization,MERFISH,RNA velocity,Single-cell transcriptomics,Spatial transcriptomics},
+pmid = {31501331},
+title = {{Spatial transcriptome profiling by MERFISH reveals subcellular RNA compartmentalization and cell cycle-dependent gene expression}},
+year = {2019}
+}
+
+##################################################################

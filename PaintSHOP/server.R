@@ -7,28 +7,20 @@ library(tidyverse)
 library(vroom)
 library(fuzzyjoin)
 library(Biostrings)
+library(aws.s3)
+
+# source AWS credentials to access probes
+source("aws-credentials.R")
 
 # load appending functions
 source("helpers.R")
 
 # Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
+  
   ##############################################
   # RefSeq IDs
   ##############################################
-  
-  # load in the probe set for the specified genome assembly
-  probes_refseq <- eventReactive(c(input$refseq_submit,
-                                   input$refseq_file), {
-    # vroom makes a fast index instead of immediately loading
-    # every row
-    vroom(input$probeset,
-          col_names = c("chrom", "start", "stop", 
-                        "sequence", "Tm", "on_target",
-                        "off_target", "repeat_seq", "max_kmer",
-                        "probe_strand", "refseq"),
-          delim = "\t")
-  })
   
   # a reactive element that is a vector of the RefSeq IDs
   # if the user inputs them manually on the UI
@@ -40,6 +32,11 @@ shinyServer(function(input, output) {
       # create a dataframe w/ the accesions
       tibble("refseq" = manual_split)
     } else {
+      # error handling for user file upload
+      validate(
+        need(!is.null(input$refseq_file$datapath),
+             "Please upload a valid file.")
+      )
       # read in a user's file and store it as a data frame w/
       # a single row
       read_csv(input$refseq_file$datapath,
@@ -47,9 +44,21 @@ shinyServer(function(input, output) {
     }
   })
   
-  # do intersection with RefSeq
-  probe_intersect <- reactive({
-    merge(refseq_accessions(), probes_refseq(), by="refseq")
+  # 1. load in the probe set for the specified genome assembly
+  # 2. do intersection with RefSeq
+  probe_intersect <- eventReactive(input$refseq_submit, {
+    # read the selected RefSeq probe set from AWS S3 into memory
+    probes_refseq <- s3read_using(read_probes_refseq,
+                                  object = input$probeset,
+                                  bucket = "paintshop-bucket")
+    
+    # save the result of intersect with RefSeq
+    intersect_result <- merge(refseq_accessions(), probes_refseq, by="refseq")
+    
+    # explicitly delete the probe file read in to free up RAM
+    rm(probes_refseq)
+    
+    return(intersect_result)
   })
   
   # filter intersect based on the currently selected advanced settings
@@ -83,7 +92,7 @@ shinyServer(function(input, output) {
         group_by(refseq) %>%
         filter(n() >= input$balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$balance_goal)
+        dplyr::slice(1:input$balance_goal)
       
       probes_less <- probe_intersect_filter() %>%
         group_by(refseq) %>%
@@ -95,7 +104,7 @@ shinyServer(function(input, output) {
         filter(refseq %in% targets_less) %>%
         group_by(refseq) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$balance_goal)
+        dplyr::slice(1:input$balance_goal)
       
       bind_rows(probes_greater_or_eq, probes_add_back)
     } else if(input$balance_set == 1) {
@@ -103,7 +112,7 @@ shinyServer(function(input, output) {
         group_by(refseq) %>%
         filter(n() >= input$balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$balance_goal)
+        dplyr::slice(1:input$balance_goal)
       
       probes_less <- probe_intersect_filter() %>%
         group_by(refseq) %>%
@@ -144,19 +153,6 @@ shinyServer(function(input, output) {
   # Genomic Coordinates
   ##############################################
   
-  # load in the probe set for the specified genome assembly
-  probes_full <- eventReactive(c(input$coord_submit,
-                                 input$coord_file), {
-    # vroom makes a fast index instead of immediately loading
-    # every row
-    vroom(input$probeset_coord,
-          col_names = c("chrom", "start", "stop", 
-                        "sequence", "Tm", "on_target",
-                        "off_target", "repeat_seq", 
-                        "max_kmer", "probe_strand"),
-          delim = "\t")
-  })
-  
   # a reactive element that is a vector of the RefSeq IDs
   # if the user inputs them manually on the UI
   coordinates <- eventReactive(input$coord_submit, {
@@ -170,12 +166,12 @@ shinyServer(function(input, output) {
       
       start <- lapply(coords, function(x) unlist(strsplit(x, "-"))[1])
       stop <- lapply(coords, function(x) unlist(strsplit(x, "-"))[2])
+      strand <- lapply(coord_split, function(x) unlist(strsplit(x, ":"))[3])
       
       coord_df <- tibble("chrom" = unlist(chrom),
                          "start" = unlist(start),
-                         "stop" = unlist(stop))
-      
-      coord_df <- coord_df %>% drop_na()
+                         "stop" = unlist(stop),
+                         "strand" = unlist(strand))
       
       # convert start stop to integers
       coord_df$start <- as.numeric(coord_df$start)
@@ -183,21 +179,69 @@ shinyServer(function(input, output) {
       
       coord_df
     } else {
+      # error handling for user file upload
+      validate(
+        need(!is.null(input$coord_file$datapath),
+             "Please upload a valid file.")
+      )
       # read in a user's file and store it as a data frame w/
       # rows to do intersect
       read_tsv(input$coord_file$datapath,
                col_names = c("chrom",
                              "start",
-                             "stop"))        
+                             "stop",
+                             "strand"))        
     }
   })
   
-  # do intersection with coordinates
-  coord_intersect <- reactive({
-    fuzzyjoin::genome_join(probes_full(), coordinates(),
-                           by = c("chrom", "start", "stop"),
-                           mode = "inner",
-                           type = "within")
+  # for each chromosome:
+  # 1. load in the chromosome probe file for the specified genome assembly
+  # 2. do intersection with coordinates for that chromosome
+  coord_intersect <- eventReactive(input$coord_submit, {
+    # retrieve the unique chromosome from the coordinates provided by user
+    unique_chroms <- unique(coordinates()$chrom)
+    
+    coord_intersect_results <- list()
+    
+    # loop over each chromosome, doing probe intersect iteratively
+    for (i in 1:length(unique_chroms)) {
+      # first retrieve the user coordinates for current chromosome
+      chrom_coords <- coordinates() %>%
+        filter(chrom == unique_chroms[i])
+      
+      # create the name of the chromosome file to read in
+      chrom_path <- paste(input$probeset_coord, "_", unique_chroms[i], ".tsv", sep = "")
+      
+      # read in the chromosome probe file to intersect with from AWS S3
+      chrom_probes <- s3read_using(read_probes_chrom,
+                                   object = chrom_path,
+                                   bucket = "paintshop-bucket")
+      
+      # do the intersect for the chromosome, storing result in list
+      coord_intersect_results[[i]] <- fuzzyjoin::genome_join(chrom_probes, chrom_coords,
+                                                             by = c("chrom", "start", "stop"),
+                                                             mode = "inner",
+                                                             type = "within")
+    }
+    
+    # explicitly remove the last chromosome probe file to free up RAM
+    rm(chrom_probes)
+    
+    # create a data frame from the list of results
+    intersect <- bind_rows(coord_intersect_results)
+    
+    # iterate over the result of the intersect,
+    # taking the reverse complement if user specified "-"
+    for (i in 1:nrow(intersect)) {
+      # the BED strand from the user must both not be NA and must be "-" to flip sequence
+      if(!is.na(intersect$strand[i]) & intersect$strand[i] == "-") {
+        intersect$sequence[i] = toString(reverseComplement(DNAString(intersect$sequence[i])))
+        intersect$probe_strand[i] = "-"
+      }
+    }
+    
+    # return the result of intersect with probes in specified orientation
+    intersect
   })
   
   # filter intersect based on the currently selected advanced settings
@@ -229,55 +273,57 @@ shinyServer(function(input, output) {
     if(input$coord_balance_set == 2) {
       probes_greater_or_eq <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y)) %>%
         filter(n() >= input$coord_balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$coord_balance_goal)
+        dplyr::slice(1:input$coord_balance_goal)
       
       probes_less <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
         filter(n() < input$coord_balance_goal) %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y))
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y))
       
       targets_less <- unique(probes_less$target)
       
       probes_add_back <- coord_intersect() %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y)) %>%
         filter(target %in% targets_less) %>%
         group_by(chrom.y, start.y) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$coord_balance_goal)
+        dplyr::slice(1:input$coord_balance_goal)
       
+      # can keep strand row to test and make sure RC behavior is
+      # correct
       bind_rows(probes_greater_or_eq, probes_add_back) %>%
         dplyr::rename(chrom = chrom.x,
                       start = start.x,
                       stop = stop.x) %>%
-        select(-c(chrom.y, start.y, stop.y))
+        select(-c(chrom.y, start.y, stop.y, strand))
     } else if(input$coord_balance_set == 1) {
       probes_greater_or_eq <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y)) %>%
         filter(n() >= input$coord_balance_goal) %>%
         arrange(off_target, .by_group = TRUE) %>%
-        slice(1:input$coord_balance_goal)
+        dplyr::slice(1:input$coord_balance_goal)
       
       probes_less <- coord_intersect_filter() %>%
         group_by(chrom.y, start.y) %>%
         filter(n() < input$coord_balance_goal) %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y))
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y))
       
       bind_rows(probes_greater_or_eq, probes_less) %>%
         dplyr::rename(chrom = chrom.x,
                       start = start.x,
                       stop = stop.x) %>%
-        select(-c(chrom.y, start.y, stop.y))
+        select(-c(chrom.y, start.y, stop.y, strand))
     } else {
       coord_intersect_filter() %>%
-        mutate(target = str_c(chrom.y, start.y, "-", stop.y)) %>%
+        mutate(target = str_c(chrom.y, "_", start.y, "-", stop.y)) %>%
         dplyr::rename(chrom = chrom.x,
                       start = start.x,
                       stop = stop.x) %>%
-        select(-c(chrom.y, start.y, stop.y))
+        select(-c(chrom.y, start.y, stop.y, strand))
     }
   })
   
@@ -491,25 +537,55 @@ shinyServer(function(input, output) {
       master_table <<- tibble(target = appended$target)
     }
     
-    ### NOTE: all sequence file paths will need to change
-    
     # work from inside out, starting with 5' inner primer
-    appended <- append_handler(appended, input$fpi_choice, input$fpi_sequence_select,
-                               "../appending/168.primers.txt", input$fpi_custom_file$datapath, 
+    
+    # first determine whether to append either a custom file, or one of the
+    # PaintSHOP provided files which was selected
+    if(input$fpi_sequence_select == FALSE) {
+      fpi_seqs <- read_tsv(input$fpi_custom_file$datapath,
+                           col_names = c("seq"))
+      
+      # create a unique ID for each custom entered sequence in list
+      fpi_seqs$id <- str_c("custom_if", 1:nrow(fpi_seqs))
+    } else {
+      fpi_seqs <- read_tsv(input$fpi_sequence_select)
+    }
+    
+    appended <- append_handler(appended, input$fpi_choice, fpi_seqs, 
                                input$fpi_append_scheme, input$design_scheme, 
                                input$fpi_custom_ranges, "five_prime_inner",
                                input$fpi_n_per_target, left = TRUE, input$fpi_orientation)
     
     # next, the 5' bridge sequence
-    appended <- append_handler(appended, input$fpb_choice, input$fpb_sequence_select,
-                               "../appending/168.primers.txt", input$fpb_custom_file$datapath, 
+    
+    if(input$fpb_sequence_select == FALSE) {
+      fpb_seqs <- read_tsv(input$fpb_custom_file$datapath,
+                           col_names = c("seq"))
+      
+      # create a unique ID for each custom entered sequence in list
+      fpb_seqs$id <- str_c("custom_bridge", 1:nrow(fpb_seqs))
+    } else {
+      fpb_seqs <- read_tsv(input$fpb_sequence_select)
+    }
+    
+    appended <- append_handler(appended, input$fpb_choice, fpb_seqs, 
                                input$fpb_append_scheme, input$design_scheme, 
                                input$fpb_custom_ranges, "five_prime_bridge",
                                input$fpb_n_per_target, left = TRUE, input$fpb_orientation)
     
     # 5' universal, the last sequence for the 5' side
-    appended <- append_handler(appended, input$fpo_choice, input$fpo_sequence_select,
-                               "../appending/168.primers.txt", input$fpo_custom_file$datapath, 
+    
+    if(input$fpo_sequence_select == FALSE) {
+      fpo_seqs <- read_tsv(input$fpo_custom_file$datapath,
+                           col_names = c("seq"))
+      
+      # create a unique ID for each custom entered sequence in list
+      fpo_seqs$id <- str_c("custom_of", 1:nrow(fpo_seqs))
+    } else {
+      fpo_seqs <- read_tsv(input$fpo_sequence_select)
+    }
+    
+    appended <- append_handler(appended, input$fpo_choice, fpo_seqs, 
                                input$fpo_append_scheme, input$design_scheme, 
                                input$fpo_custom_ranges, "five_prime_outer",
                                input$fpo_n_per_target, left = TRUE, input$fpo_orientation)
@@ -520,32 +596,62 @@ shinyServer(function(input, output) {
     if(input$tp_appending_choice == 1) {
       # SABER was selected, determine number of concatemers and append
       if(input$saber_x == 1) {
-        saber_file_path <- "../appending/SABER_RC_ordered.txt"
+        saber_file_path <- "appending/saber_1x.tsv"
       } else {
-        saber_file_path <- "../appending/SABER_RC_ordered.txt"
+        saber_file_path <- "appending/saber_2x.tsv"
       }
       
      appended <- saber_handler(appended, saber_file_path, input$saber_append_scheme,
                                input$design_scheme, input$saber_custom_ranges, 
-                               input$saber_n_per_target, "saber") 
+                               "saber", input$saber_n_per_target) 
     } else {
       # work from inside out, starting with 3' inner primer
-      appended <- append_handler(appended, input$tpi_choice, input$tpi_sequence_select,
-                                 "../appending/168.primers.txt", input$tpi_custom_file$datapath, 
+      
+      if(input$tpi_sequence_select == FALSE) {
+        tpi_seqs <- read_tsv(input$tpi_custom_file$datapath,
+                             col_names = c("seq"))
+        
+        # create a unique ID for each custom entered sequence in list
+        tpi_seqs$id <- str_c("custom_ir", 1:nrow(tpi_seqs))
+      } else {
+        tpi_seqs <- read_tsv(input$tpi_sequence_select)
+      }
+      
+      appended <- append_handler(appended, input$tpi_choice, tpi_seqs, 
                                  input$tpi_append_scheme, input$design_scheme, 
                                  input$tpi_custom_ranges, "three_prime_inner", 
                                  input$tpi_n_per_target, left = FALSE, input$tpi_orientation)
       
       # next, the 3' bridge sequence
-      appended <- append_handler(appended, input$tpb_choice, input$tpb_sequence_select,
-                                 "../appending/168.primers.txt", input$tpb_custom_file$datapath, 
+      
+      if(input$tpb_sequence_select == FALSE) {
+        tpb_seqs <- read_tsv(input$tpb_custom_file$datapath,
+                             col_names = c("seq"))
+        
+        # create a unique ID for each custom entered sequence in list
+        tpb_seqs$id <- str_c("custom_bridge", 1:nrow(tpb_seqs))
+      } else {
+        tpb_seqs <- read_tsv(input$tpb_sequence_select)
+      }
+      
+      appended <- append_handler(appended, input$tpb_choice, tpb_seqs, 
                                  input$tpb_append_scheme, input$design_scheme, 
                                  input$tpb_custom_ranges, "three_prime_bridge", 
                                  input$tpb_n_per_target, left = FALSE, input$tpb_orientation)
       
       # 3' universal, the last sequence for the 3' side
-      appended <- append_handler(appended, input$tpo_choice, input$tpo_sequence_select,
-                                 "../appending/168.primers.txt", input$tpo_custom_file$datapath, 
+      
+      if(input$tpo_sequence_select == FALSE) {
+        tpo_seqs <- read_tsv(input$tpo_custom_file$datapath,
+                             col_names = c("seq"))
+        
+        # create a unique ID for each custom entered sequence in list
+        tpo_seqs$id <- str_c("custom_or", 1:nrow(tpo_seqs))
+      } else {
+        tpo_seqs <- read_tsv(input$tpo_sequence_select)
+      }
+      
+      appended <- append_handler(appended, input$tpo_choice, tpo_seqs, 
                                  input$tpo_append_scheme, input$design_scheme, 
                                  input$tpo_custom_ranges, "three_prime_outer", 
                                  input$tpo_n_per_target, left = FALSE, input$tpo_orientation)
@@ -588,9 +694,16 @@ shinyServer(function(input, output) {
         append_info <- ""
         
         for (col in summary_cols) {
-          info <- str_split(col, "_")[[1]]
-          info <- str_c(str_sub(info[1], 1, 1), str_sub(info[2], 1, 1), str_sub(info[3], 1, 1))
-          append_info <- str_c(append_info, info, sep = "_")
+          # determine if the column is saber
+          if(col == "saber") {
+            append_info <- str_c(append_info, col, sep = "_")
+          } else {
+            # determine what was appended
+            info <- str_split(col, "_")[[1]]
+            # parse out first letters for each, i.e. first prime bridge = fpb
+            info <- str_c(str_sub(info[1], 1, 1), str_sub(info[2], 1, 1), str_sub(info[3], 1, 1))
+            append_info <- str_c(append_info, info, sep = "_")
+          }
         }
         
         probes <- probes %>%
@@ -600,7 +713,7 @@ shinyServer(function(input, output) {
           select(c(order_id, sequence))
       } else {
         # base probes are either RNA or DNA
-        if(input$design_scheme) {
+        if(input$download_design_scheme) {
           # RNA
           probes <- probe_intersect_final()
         } else {
@@ -628,7 +741,7 @@ shinyServer(function(input, output) {
         probes_appended()$appended
       } else {
         # base probes are either RNA or DNA
-        if(input$design_scheme) {
+        if(input$download_design_scheme) {
           # RNA
           probe_intersect_final()
         } else {
@@ -651,11 +764,15 @@ shinyServer(function(input, output) {
         paste(Sys.Date(), "-PaintSHOP-appending-file", ".txt", sep="")
       } else if(input$download_choice == 4) {
         paste(Sys.Date(), "-PaintSHOP-full-probe-file", ".txt", sep="")
+      } else if(input$download_choice == 5) {
+        paste(Sys.Date(), "-PaintSHOP-citation-file", ".txt", sep="")
       }
       
     },
     content = function(file) {
-      if(input$download_choice == 2) {
+      if(input$download_choice == 5) {
+        file.copy("citations.txt", file)
+      } else if(input$download_choice == 2) {
         write_tsv(download_data(), file, col_names = FALSE)
       } else {
         write_tsv(download_data(), file)
@@ -663,4 +780,5 @@ shinyServer(function(input, output) {
       
     }
   )
+  
 })
