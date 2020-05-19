@@ -711,8 +711,15 @@ shinyServer(function(input, output, session) {
           }
         }
         
-        probes <- probes %>%
-          mutate(order_id = str_c(chrom, "_", start, append_info))
+        if(input$download_design_scheme) {
+          # RNA (include the refseq in Order ID)
+          probes <- probes %>%
+            mutate(order_id = str_c(chrom, "_", start, "_", refseq, append_info))
+        } else {
+          # DNA
+          probes <- probes %>%
+            mutate(order_id = str_c(chrom, "_", start, append_info))
+        }
         
         probes %>%
           select(c(order_id, sequence))
@@ -726,8 +733,15 @@ shinyServer(function(input, output, session) {
           probes <- coord_intersect_final()
         }
         
-        probes <- probes %>%
-          mutate(order_id = str_c(chrom, "_", start))
+        if(input$download_design_scheme) {
+          # RNA (include the refseq in Order ID)
+          probes <- probes %>%
+            mutate(order_id = str_c(chrom, "_", start, "_", refseq))
+        } else {
+          # DNA
+          probes <- probes %>%
+            mutate(order_id = str_c(chrom, "_", start))
+        }
         
         probes %>%
           select(c(order_id, sequence))
