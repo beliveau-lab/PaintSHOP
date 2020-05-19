@@ -29,6 +29,11 @@ shinyServer(function(input, output, session) {
       # split the manual comma separated input
       manual_split <- unlist(strsplit(input$refseq_manual, ", "))
       
+      # strip refSeq versions from the input
+      manual_split <- dplyr::if_else(stringr::str_ends(manual_split, "[.][0-9]+"), 
+                                     stringr::str_sub(manual_split, 1, -3), 
+                                     manual_split)
+      
       # create a dataframe w/ the accesions
       tibble("refseq" = manual_split)
     } else {
