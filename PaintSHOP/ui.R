@@ -44,7 +44,7 @@ shinyUI(fluidPage(
         tags$br(),
         tags$img(height = 300, width = 1400,
                  src = 'workflow-diagram.png'),
-        tags$h4("If you use PaintSHOP in your research, please cite our manuscript:")
+        tags$h4("If you use PaintSHOP in your research, please cite:")
       ),
       tabPanel("RNA Probe Design",
         sidebarLayout(
@@ -435,6 +435,44 @@ shinyUI(fluidPage(
          )
         )
       ),
+      tabPanel("Append Barcodes",
+        tags$h1("Description"),
+        tags$h4("This tab aims to support the construction of probe sets for users who 
+                 want to perform MERFISH experiments:"),
+        tags$br(),
+        tags$img(height = 500,
+                 width = 500,
+                 src = "Moffitt-etal-2016-FigS1.png"),
+        tags$br(),
+        tags$br(),
+        tags$h6(tags$a("Moffitt et al. 2016 (Fig. S1)", href = "https://doi.org/10.1073/pnas.1612826113",
+                       target = "_blank")),
+        tags$br(),
+        tags$br(),
+        tags$h4("Currently, we provide support for MHD4 16-bit barcodes. To use this feature,
+                 upload a plaintext file with one barcode per line. For example:"),
+        tags$br(),
+        tags$p("1111000000000000",
+               tags$br(),
+               "1000000010001001",
+               tags$br(),
+               "1000100000000101",
+               tags$br(),
+               "..."),
+        tags$br(),
+        tags$h4("Importantly, there must be at least as many barcodes as there are targets. Select which set 
+                 of bridge sequences you want to append, as well as which universal forward and reverse 
+                 primers to add to the set. With this information, the barcoding scheme will be used 
+                 to append the bridge sequences to your probe set."),
+        tags$br(),
+        tags$h4(tags$b("Note: Use this feature OR the general sequence appending feature, you cannot use both."))
+        
+        
+            
+               
+               
+
+      ),
       tabPanel("Download",
         sidebarLayout(
           sidebarPanel(
@@ -460,17 +498,19 @@ shinyUI(fluidPage(
         )
       ),
       tabPanel("Resources Available",
-               "As part of our effort to provide open resources for the oligo-FISH community, ",
-               "all probe sets and appending sets used in the backend of PaintSHOP are available ",
-               "for download here: ", 
-               tags$a("link", href = "https://github.com/elliothershberg/PaintSHOP_resources",
-                      target = "_blank"),
+               tags$h4("As part of our effort to provide open resources for the oligo-FISH community, 
+                        all probe sets and appending sets used in the backend of PaintSHOP are available
+                        for download here:"),
+               tags$br(),
+               div(tags$h4(tags$a('Resources Link', href = 'https://github.com/elliothershberg/PaintSHOP_resources',
+                              target = '_blank')),
+                   style="text-align: center;"),
                tags$br(),
                tags$br(),
-               "Our goal in designing PaintSHOP was to make easy things easy, and hard things possible. ",
-               "A key use case of the resources we have made available is to download the sets of sequences ",
-               "that can be appended, create custom appending files, and use those files in PaintSHOP. ",
-               "With this flexibility, practically all appending design schemes should be possible."
+               tags$h4("Note: Our goal in designing PaintSHOP was to make easy things easy, and hard things possible.
+                        A key use case of the resources we have made available is to download the sets of sequences
+                        that can be appended, create custom appending files, and use those files in PaintSHOP.
+                        With this flexibility, practically all appending design schemes should be possible.")
       ),
       tabPanel("Documentation",
         tags$h3("Click on a topic to expand the description", align = "center"),
