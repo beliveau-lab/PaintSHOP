@@ -28,7 +28,7 @@ collect_indices <- function(barcode) {
 # Arguments
 # ---------
 # probes: tbl_df
-#   The set of probes for a specific target. The "sequence"
+#   The set of probes for a specific target. The "seq"
 #   column must contain the probe sequence
 # bridges: tbl_df
 #   The set of 16 bridges that can be chosen from to append
@@ -59,13 +59,13 @@ add_bridges <- function(probes, bridges, indices) {
     
     # append the bridge sequences
     if (heavy == "five_prime") {
-      probes[i, "sequence"] <- str_c(bridges[curr_indices[1], "bridge"], probes[i, "sequence"])
-      probes[i, "sequence"] <- str_c(bridges[curr_indices[2], "bridge"], probes[i, "sequence"])
-      probes[i, "sequence"] <- str_c(probes[i, "sequence"], bridges[curr_indices[3], "bridge"])
+      probes[i, "seq"] <- str_c(seqs[curr_indices[1], "seq"], probes[i, "seq"])
+      probes[i, "seq"] <- str_c(seqs[curr_indices[2], "seq"], probes[i, "seq"])
+      probes[i, "seq"] <- str_c(probes[i, "seq"], seqs[curr_indices[3], "seq"])
     } else {
-      probes[i, "sequence"] <- str_c(bridges[curr_indices[1], "bridge"], probes[i, "sequence"])
-      probes[i, "sequence"] <- str_c(probes[i, "sequence"], bridges[curr_indices[2], "bridge"])
-      probes[i, "sequence"] <- str_c(probes[i, "sequence"], bridges[curr_indices[3], "bridge"])
+      probes[i, "seq"] <- str_c(seqs[curr_indices[1], "seq"], probes[i, "seq"])
+      probes[i, "seq"] <- str_c(probes[i, "seq"], seqs[curr_indices[2], "seq"])
+      probes[i, "seq"] <- str_c(probes[i, "seq"], seqs[curr_indices[3], "seq"])
     }
   }
   
@@ -77,7 +77,7 @@ add_bridges <- function(probes, bridges, indices) {
 # Arguments
 # ---------
 # probes: tbl_df
-#   The set of probes to append barcodes to. The "sequence"
+#   The set of probes to append barcodes to. The "seq"
 #   column must contain the probe sequence
 # bridges: tbl_df
 #   The set of 16 bridges that can be chosen from to append

@@ -15,6 +15,9 @@ source("aws-credentials.R")
 # load appending functions
 source("helpers.R")
 
+# load MERFISH barcode functions
+source("barcode.R")
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   
@@ -357,7 +360,7 @@ shinyServer(function(input, output, session) {
   })
   
   ##############################################
-  # Appending
+  # Appending Sequences
   ##############################################
   
   # toggle 5' universal primer append options
@@ -681,6 +684,76 @@ shinyServer(function(input, output, session) {
 
     DT::datatable(summary_table)
   })
+  
+  ##############################################
+  # Appending Barcodes
+  ##############################################
+  
+  barcodes_uploaded <- eventReactive(input$barcode_submit, {
+    # error handling for user file upload
+    validate(
+      need(!is.null(input$barcode_input$datapath),
+           "Please upload a valid barcode file.")
+    )
+    # read in a user's file and store it as a data frame w/
+    # a single row
+    read_csv(input$barcode_input$datapath,
+             col_names = c("barcode"))
+  })
+  
+  # read in only 16 bridges (all that is needed)
+  barcode_bridges <- eventReactive(input$barcode_submit, {
+    if(input$barcode_bridge_select) {
+      read_tsv(input$barcode_bridge_select,
+               n_max = 16)
+    } else {
+      validate(
+        need(!is.null(input$barcode_custom_bridge$datapath),
+             "Please upload a valid barcode file.")
+      )
+      read_csv(input$barcode_custom_bridge$datapath,
+               col_names = c("seq"),
+               n_max = 16)
+      
+    }
+  })
+  
+  barcode_forward_primer <- eventReactive(input$barcode_submit, {
+    if(input$barcode_forward_select) {
+      read_tsv(input$barcode_forward_select,
+               n_max = 1)
+    } else {
+      validate(
+        need(!is.null(input$barcode_custom_forward$datapath),
+             "Please upload a valid barcode file.")
+      )
+      read_csv(input$barcode_custom_forward$datapath,
+               col_names = c("seq"),
+               n_max = 1)
+    }
+  })
+  
+  barcode_reverse_primer <- eventReactive(input$barcode_submit, {
+    if(input$barcode_reverse_select) {
+      read_tsv(input$barcode_reverse_select,
+               n_max = 1)
+    } else {
+      validate(
+        need(!is.null(input$barcode_custom_forward$datapath),
+             "Please upload a valid barcode file.")
+      )
+      read_csv(input$barcode_custom_forward$datapath,
+               col_names = c("seq"),
+               n_max = 1)
+    }
+  })
+  
+  
+  
+  output$barcode_table <- DT::renderDataTable({
+    DT::datatable(barcodes_uploaded())
+  })
+  
   
   ##############################################
   # Downloading

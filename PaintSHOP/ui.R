@@ -438,7 +438,7 @@ shinyUI(fluidPage(
       tabPanel("Append Barcodes",
         tags$h1("Description"),
         tags$h4("This tab aims to support the construction of probe sets for users who 
-                 want to perform MERFISH experiments:"),
+                 want to perform RNA MERFISH experiments:"),
         tags$br(),
         tags$img(height = 500,
                  width = 500,
@@ -465,13 +465,52 @@ shinyUI(fluidPage(
                  primers to add to the set. With this information, the barcoding scheme will be used 
                  to append the bridge sequences to your probe set."),
         tags$br(),
-        tags$h4(tags$b("Note: Use this feature OR the general sequence appending feature, you cannot use both."))
-        
-        
+        tags$h4(tags$b("Note: Use this feature OR the general sequence appending feature, you cannot use both.")),
+        sidebarLayout(
+          sidebarPanel(
+            fileInput("barcode_input", label = "Upload Barcode List", 
+                      multiple = FALSE, accept = NULL,
+                      width = NULL, buttonLabel = "Browse...",
+                      placeholder = "No file selected"),
+            tags$hr(),
+            selectInput("barcode_bridge_select", label = "Select Bridge Set", 
+                        choices = list("PaintSHOP 5' Bridge Set" = "appending/ps_fpb.tsv",
+                                       "PaintSHOP Full Bridge Set" = "appending/ps_bridges.tsv",
+                                       "MERFISH Bridge Set" = "appending/merfish_bridges.tsv",
+                                       "Mateo et al. 2019 Bridges" = "appending/Mateo2019_bridges.tsv",
+                                       "Xia et al. 2019 Bridges" = "appending/Xia2019_bridges.tsv",
+                                       "Custom Set" = FALSE), 
+                        selected = "appending/ps_fpb.tsv"),
+            fileInput("barcode_custom_bridge", label = "Upload Custom Set (optional)", 
+                      multiple = FALSE, accept = NULL,
+                      width = NULL, buttonLabel = "Browse...",
+                      placeholder = "No file selected"),
+            tags$hr(),
+            selectInput("barcode_forward_select", label = "Select Universal Forward Primer", 
+                        choices = list("PaintSHOP Forward Primer" = "appending/ps_of.tsv",
+                                       "Custom" = FALSE), 
+                        selected = "appending/ps_of.tsv"),
+            fileInput("barcode_custom_forward", label = "Upload Custom Primer (optional)", 
+                      multiple = FALSE, accept = NULL,
+                      width = NULL, buttonLabel = "Browse...",
+                      placeholder = "No file selected"),
+            tags$hr(),
+            selectInput("barcode_reverse_select", label = "Select Universal Reverse Primer", 
+                        choices = list("PaintSHOP Reverse Primer" = "appending/ps_or.tsv",
+                                       "Custom" = FALSE), 
+                        selected = "appending/ps_or.tsv"),
+            fileInput("barcode_custom_reverse", label = "Upload Custom Set (optional)", 
+                      multiple = FALSE, accept = NULL,
+                      width = NULL, buttonLabel = "Browse...",
+                      placeholder = "No file selected"),
+            tags$hr(),
+            actionButton("barcode_submit", label = tags$h2("Append Barcodes"))
+          ),
+          mainPanel(
+            DT::dataTableOutput("barcode_table")
             
-               
-               
-
+          )
+        )
       ),
       tabPanel("Download",
         sidebarLayout(
