@@ -129,6 +129,9 @@ shinyUI(fluidPage(
           ),
           mainPanel(
             plotOutput("count_plot") %>% withSpinner(color = "grey"),
+            DT::dataTableOutput("intersect_count_table"),
+            tags$br(),
+            tags$br(),
             DT::dataTableOutput("intersect_table")
             
           )
@@ -211,6 +214,9 @@ shinyUI(fluidPage(
          ),
          mainPanel(
            plotOutput("coord_count_plot") %>% withSpinner(color = "grey"),
+           DT::dataTableOutput("coord_intersect_count_table"),
+           tags$br(),
+           tags$br(),
            DT::dataTableOutput("coord_intersect_table")
            
          )

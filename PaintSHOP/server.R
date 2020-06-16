@@ -147,6 +147,10 @@ shinyServer(function(input, output, session) {
       xlab("Number of probes per transcript")
   })
   
+  output$intersect_count_table <- DT::renderDataTable({
+    DT::datatable(probe_counts())
+  })
+  
   output$intersect_table <- DT::renderDataTable({
     DT::datatable(probe_intersect_final())
   })
@@ -347,6 +351,10 @@ shinyServer(function(input, output, session) {
     ggplot(coord_counts(), aes(x = n)) +
       geom_density() +
       xlab("Number of probes per genomic region")
+  })
+  
+  output$coord_intersect_count_table <- DT::renderDataTable({
+    DT::datatable(coord_counts())
   })
   
   output$coord_intersect_table <- DT::renderDataTable({
