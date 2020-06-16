@@ -474,13 +474,13 @@ shinyUI(fluidPage(
                       placeholder = "No file selected"),
             tags$hr(),
             selectInput("barcode_bridge_select", label = "Select Bridge Set", 
-                        choices = list("PaintSHOP 5' Bridge Set" = "appending/ps_fpb.tsv",
-                                       "PaintSHOP Full Bridge Set" = "appending/ps_bridges.tsv",
+                        choices = list("PaintSHOP Full Bridge Set" = "appending/ps_bridges.tsv",
                                        "MERFISH Bridge Set" = "appending/merfish_bridges.tsv",
+                                       "PaintSHOP 5' Bridge Set" = "appending/ps_fpb.tsv",
                                        "Mateo et al. 2019 Bridges" = "appending/Mateo2019_bridges.tsv",
                                        "Xia et al. 2019 Bridges" = "appending/Xia2019_bridges.tsv",
                                        "Custom Set" = FALSE), 
-                        selected = "appending/ps_fpb.tsv"),
+                        selected = "appending/ps_bridges.tsv"),
             fileInput("barcode_custom_bridge", label = "Upload Custom Set (optional)", 
                       multiple = FALSE, accept = NULL,
                       width = NULL, buttonLabel = "Browse...",
@@ -490,7 +490,7 @@ shinyUI(fluidPage(
                         choices = list("PaintSHOP Forward Primer" = "appending/ps_of.tsv",
                                        "Custom" = FALSE), 
                         selected = "appending/ps_of.tsv"),
-            fileInput("barcode_custom_forward", label = "Upload Custom Primer (optional)", 
+            fileInput("barcode_custom_forward", label = "Upload Custom Forward Primer (optional)", 
                       multiple = FALSE, accept = NULL,
                       width = NULL, buttonLabel = "Browse...",
                       placeholder = "No file selected"),
@@ -499,7 +499,7 @@ shinyUI(fluidPage(
                         choices = list("PaintSHOP Reverse Primer" = "appending/ps_or.tsv",
                                        "Custom" = FALSE), 
                         selected = "appending/ps_or.tsv"),
-            fileInput("barcode_custom_reverse", label = "Upload Custom Set (optional)", 
+            fileInput("barcode_custom_reverse", label = "Upload Custom Reverse Primer (optional)", 
                       multiple = FALSE, accept = NULL,
                       width = NULL, buttonLabel = "Browse...",
                       placeholder = "No file selected"),
@@ -507,8 +507,10 @@ shinyUI(fluidPage(
             actionButton("barcode_submit", label = tags$h2("Append Barcodes"))
           ),
           mainPanel(
+            DT::dataTableOutput("barcode_bridge_table"),
+            tags$br(),
+            tags$br(),
             DT::dataTableOutput("barcode_table")
-            
           )
         )
       ),

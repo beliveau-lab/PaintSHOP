@@ -698,12 +698,13 @@ shinyServer(function(input, output, session) {
     # read in a user's file and store it as a data frame w/
     # a single row
     read_csv(input$barcode_input$datapath,
-             col_names = c("barcode"))
+             col_names = c("barcode"),
+             col_types = "c")
   })
   
   # read in only 16 bridges (all that is needed)
   barcode_bridges <- eventReactive(input$barcode_submit, {
-    if(input$barcode_bridge_select) {
+    if(input$barcode_bridge_select != FALSE) {
       read_tsv(input$barcode_bridge_select,
                n_max = 16)
     } else {
@@ -719,7 +720,7 @@ shinyServer(function(input, output, session) {
   })
   
   barcode_forward_primer <- eventReactive(input$barcode_submit, {
-    if(input$barcode_forward_select) {
+    if(input$barcode_forward_select != FALSE) {
       read_tsv(input$barcode_forward_select,
                n_max = 1)
     } else {
@@ -734,7 +735,7 @@ shinyServer(function(input, output, session) {
   })
   
   barcode_reverse_primer <- eventReactive(input$barcode_submit, {
-    if(input$barcode_reverse_select) {
+    if(input$barcode_reverse_select != FALSE) {
       read_tsv(input$barcode_reverse_select,
                n_max = 1)
     } else {
@@ -748,10 +749,27 @@ shinyServer(function(input, output, session) {
     }
   })
   
+  barcode_result <- reactive({
+    append_barcodes(probe_intersect_final(),
+                    barcode_bridges(),
+                    barcodes_uploaded())
+  })
   
+  output$barcode_bridge_table <- DT::renderDataTable({
+    bridges <- barcode_bridges()
+    bridges <- bridges %>% dplyr::rename(bridge = seq)
+    
+    DT::datatable(bridges)
+  })
   
   output$barcode_table <- DT::renderDataTable({
-    DT::datatable(barcodes_uploaded())
+    unique_targets <- unique(barcode_result()$refseq)
+    barcodes <- barcodes_uploaded()
+    
+    display_table <- tibble(refseq = unique_targets,
+                            barcode = barcodes)
+    
+    DT::datatable(display_table)
   })
   
   
