@@ -722,37 +722,45 @@ shinyServer(function(input, output, session) {
   barcode_forward_primer <- eventReactive(input$barcode_submit, {
     if(input$barcode_forward_select != FALSE) {
       read_tsv(input$barcode_forward_select,
-               n_max = 1)
+               col_names = c("id", "primer"), skip = 1)
     } else {
       validate(
         need(!is.null(input$barcode_custom_forward$datapath),
              "Please upload a valid barcode file.")
       )
       read_csv(input$barcode_custom_forward$datapath,
-               col_names = c("seq"),
-               n_max = 1)
+               col_names = c("primer"))
     }
   })
   
   barcode_reverse_primer <- eventReactive(input$barcode_submit, {
     if(input$barcode_reverse_select != FALSE) {
       read_tsv(input$barcode_reverse_select,
-               n_max = 1)
+               col_names = c("id", "primer"), skip = 1)
     } else {
       validate(
         need(!is.null(input$barcode_custom_forward$datapath),
              "Please upload a valid barcode file.")
       )
       read_csv(input$barcode_custom_forward$datapath,
-               col_names = c("seq"),
-               n_max = 1)
+               col_names = c("primer"))
     }
   })
   
   barcode_result <- reactive({
-    append_barcodes(probe_intersect_final(),
-                    barcode_bridges(),
-                    barcodes_uploaded())
+    w_barcodes <- append_barcodes(probe_intersect_final(),
+                                  barcode_bridges(),
+                                  barcodes_uploaded())
+    
+    # add universal primer pair
+    fp <- barcode_forward_primer()$primer[1]
+    rp <- barcode_reverse_primer()$primer[1]
+    
+    w_primers <- w_barcodes %>%
+      mutate(sequence = str_c(fp, sequence))
+    
+    w_primers %>%
+      mutate(sequence = str_c(sequence, rp))
   })
   
   output$barcode_bridge_table <- DT::renderDataTable({
@@ -771,8 +779,7 @@ shinyServer(function(input, output, session) {
     
     DT::datatable(display_table)
   })
-  
-  
+
   ##############################################
   # Downloading
   ##############################################
