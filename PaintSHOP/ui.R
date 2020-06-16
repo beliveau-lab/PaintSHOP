@@ -465,7 +465,8 @@ shinyUI(fluidPage(
                  primers to add to the set. With this information, the barcoding scheme will be used 
                  to append the bridge sequences to your probe set."),
         tags$br(),
-        tags$h4(tags$b("Note: Use this feature OR the general sequence appending feature, you cannot use both.")),
+        tags$h4(tags$b("Note: You first need to use the RNA Probe Design Tab before using this feature. 
+                       Use this feature OR the general sequence appending feature, you cannot use both.")),
         sidebarLayout(
           sidebarPanel(
             fileInput("barcode_input", label = "Upload Barcode List", 
@@ -517,9 +518,11 @@ shinyUI(fluidPage(
       tabPanel("Download",
         sidebarLayout(
           sidebarPanel(
-            radioButtons("appended_tf", "Appended Sequences:",
-                         c("Yes" = TRUE, "No" = FALSE),
-                         selected = FALSE),
+            radioButtons("appended_choice", "Used Appending:",
+                         c("Appended Sequences" = 1,
+                           "Appended Barcodes" = 2,
+                           "No" = 3),
+                         selected = 3),
             # determine which type of design should be downloaded
             radioButtons("download_design_scheme", "Design Scheme:",
                          c("RNA Probe Design" = TRUE, "DNA Probe Design" = FALSE),

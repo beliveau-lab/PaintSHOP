@@ -786,7 +786,7 @@ shinyServer(function(input, output, session) {
   
   download_data <- eventReactive(input$download_choice, {
     if(input$download_choice == 2) {
-      if(input$appended_tf) {
+      if(input$appended_choice == 1) {
         probes <- probes_appended()$appended
         summary <- probes_appended()$master_table %>%
           select(-c(target))
@@ -821,7 +821,7 @@ shinyServer(function(input, output, session) {
         
         probes %>%
           select(c(order_id, sequence))
-      } else {
+      } else if(input$appended_choice == 3) {
         # base probes are either RNA or DNA
         if(input$download_design_scheme) {
           # RNA
@@ -843,20 +843,37 @@ shinyServer(function(input, output, session) {
         
         probes %>%
           select(c(order_id, sequence))
+      } else if(input$appended_choice == 2) {
+        probes <- barcode_result()
+        
+        probes <- probes %>%
+          mutate(order_id = str_c(chrom, "_", start, "_", refseq))
+        
+        probes %>%
+          select(c(order_id, sequence))
       }
         
     } else if(input$download_choice == 3) {
-      collapse <- function(column) {
-        return(str_c(list(unique(column)), collapse = ","))
+      if(input$appended_choice == 1) {
+        collapse <- function(column) {
+          return(str_c(list(unique(column)), collapse = ","))
+        }
+        
+        probes_appended()$master_table %>%
+          group_by(target) %>%
+          summarise_all(collapse)
+      } else {
+        unique_targets <- unique(barcode_result()$refseq)
+        barcodes <- barcodes_uploaded()
+        
+        tibble(refseq = unique_targets,
+               barcode = barcodes)
       }
       
-      probes_appended()$master_table %>%
-        group_by(target) %>%
-        summarise_all(collapse)
     } else if(input$download_choice == 4) {
-      if(input$appended_tf) {
+      if(input$appended_choice == 1) {
         probes_appended()$appended
-      } else {
+      } else if(input$appended_choice == 3) {
         # base probes are either RNA or DNA
         if(input$download_design_scheme) {
           # RNA
@@ -865,6 +882,8 @@ shinyServer(function(input, output, session) {
           # DNA
           coord_intersect_final()
         }
+      } else if(input$appended_choice == 2) {
+       barcode_result()
       }
     }
   })
