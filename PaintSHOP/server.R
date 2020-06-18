@@ -32,13 +32,15 @@ shinyServer(function(input, output, session) {
       # split the manual comma separated input
       manual_split <- unlist(strsplit(input$refseq_manual, ", "))
       
-      # strip refSeq versions from the input
-      manual_split <- dplyr::if_else(stringr::str_ends(manual_split, "[.][0-9]+"), 
-                                     stringr::str_sub(manual_split, 1, -3), 
-                                     manual_split)
-      
       # create a dataframe w/ the accesions
-      tibble("refseq" = manual_split)
+      manual_input <- tibble("refseq" = manual_split)
+      
+      # strip any versions
+      manual_input %>% mutate(
+        refseq = ifelse(stringr::str_ends(refseq, "[.][0-9]+"),
+                        stringr::str_split(refseq, "[.]", simplify = TRUE),
+                        refseq)
+      )
     } else {
       # error handling for user file upload
       validate(
@@ -47,8 +49,15 @@ shinyServer(function(input, output, session) {
       )
       # read in a user's file and store it as a data frame w/
       # a single row
-      read_csv(input$refseq_file$datapath,
+      user_file <- read_csv(input$refseq_file$datapath,
                col_names = c("refseq"))
+      
+      # strip any versions
+      user_file %>% mutate(
+        refseq = ifelse(stringr::str_ends(refseq, "[.][0-9]+"),
+                        stringr::str_split(refseq, "[.]", simplify = TRUE),
+                        refseq)
+      )
     }
   })
   
@@ -781,6 +790,7 @@ shinyServer(function(input, output, session) {
   output$barcode_table <- DT::renderDataTable({
     unique_targets <- unique(barcode_result()$refseq)
     barcodes <- barcodes_uploaded()
+    barcodes <- barcodes[1:length(unique_targets),]
     
     display_table <- tibble(refseq = unique_targets,
                             barcode = barcodes)
