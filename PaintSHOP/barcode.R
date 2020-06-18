@@ -58,6 +58,8 @@ add_bridges <- function(probes, bridges, indices) {
     }
     
     # append the bridge sequences
+    set.seed(i)
+    curr_indices <- sample(curr_indices)
     if (heavy == "five_prime") {
       probes[i, "sequence"] <- str_c(bridges[curr_indices[1], "seq"], probes[i, "sequence"])
       probes[i, "sequence"] <- str_c(bridges[curr_indices[2], "seq"], probes[i, "sequence"])
