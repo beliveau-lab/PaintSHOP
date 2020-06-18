@@ -95,11 +95,14 @@ append_barcodes <- function(probes, bridges, barcodes) {
   # first grab out list of unique IDs
   unique_IDs <- unique(probes$refseq)
   
-  # Check to make sure that there are an equal number of IDs and barcodes
-  if (length(unique_IDs) != nrow(barcodes)) {
-    error_string <- "Error: the number of targets IDs and barcodes does not match."
-    stop(error_string)
-  }
+  # Check to make sure that there are enough barcodes
+  validate(
+    need(nrow(barcodes) >= length(unique_IDs),
+         "There are not enough barcodes for the number of targets with probes.")
+  )
+  
+  # drop any extra barcodes
+  barcodes <- barcodes[1:length(unique_IDs),]
   
   # loop over all RefSeq IDs
   new_probes <- list()
