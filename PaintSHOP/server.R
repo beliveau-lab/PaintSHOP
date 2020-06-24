@@ -15,6 +15,9 @@ source("aws-credentials.R")
 # load appending functions
 source("helpers.R")
 
+# load MERFISH barcode functions
+source("barcode.R")
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   
@@ -30,7 +33,14 @@ shinyServer(function(input, output, session) {
       manual_split <- unlist(strsplit(input$refseq_manual, ", "))
       
       # create a dataframe w/ the accesions
-      tibble("refseq" = manual_split)
+      manual_input <- tibble("refseq" = manual_split)
+      
+      # strip any versions
+      manual_input %>% mutate(
+        refseq = ifelse(stringr::str_ends(refseq, "[.][0-9]+"),
+                        stringr::str_split(refseq, "[.]", simplify = TRUE),
+                        refseq)
+      )
     } else {
       # error handling for user file upload
       validate(
@@ -39,8 +49,15 @@ shinyServer(function(input, output, session) {
       )
       # read in a user's file and store it as a data frame w/
       # a single row
-      read_csv(input$refseq_file$datapath,
+      user_file <- read_csv(input$refseq_file$datapath,
                col_names = c("refseq"))
+      
+      # strip any versions
+      user_file %>% mutate(
+        refseq = ifelse(stringr::str_ends(refseq, "[.][0-9]+"),
+                        stringr::str_split(refseq, "[.]", simplify = TRUE),
+                        refseq)
+      )
     }
   })
   
@@ -137,6 +154,10 @@ shinyServer(function(input, output, session) {
     ggplot(probe_counts(), aes(x = n)) +
       geom_density() +
       xlab("Number of probes per transcript")
+  })
+  
+  output$intersect_count_table <- DT::renderDataTable({
+    DT::datatable(probe_counts())
   })
   
   output$intersect_table <- DT::renderDataTable({
@@ -341,6 +362,10 @@ shinyServer(function(input, output, session) {
       xlab("Number of probes per genomic region")
   })
   
+  output$coord_intersect_count_table <- DT::renderDataTable({
+    DT::datatable(coord_counts())
+  })
+  
   output$coord_intersect_table <- DT::renderDataTable({
     DT::datatable(coord_intersect_final())
   })
@@ -352,7 +377,7 @@ shinyServer(function(input, output, session) {
   })
   
   ##############################################
-  # Appending
+  # Appending Sequences
   ##############################################
   
   # toggle 5' universal primer append options
@@ -678,12 +703,108 @@ shinyServer(function(input, output, session) {
   })
   
   ##############################################
+  # Appending Barcodes
+  ##############################################
+  
+  barcodes_uploaded <- eventReactive(input$barcode_submit, {
+    # error handling for user file upload
+    validate(
+      need(!is.null(input$barcode_input$datapath),
+           "Please upload a valid barcode file.")
+    )
+    # read in a user's file and store it as a data frame w/
+    # a single row
+    read_csv(input$barcode_input$datapath,
+             col_names = c("barcode"),
+             col_types = "c")
+  })
+  
+  # read in only 16 bridges (all that is needed)
+  barcode_bridges <- eventReactive(input$barcode_submit, {
+    if(input$barcode_bridge_select != FALSE) {
+      read_tsv(input$barcode_bridge_select,
+               n_max = 16)
+    } else {
+      validate(
+        need(!is.null(input$barcode_custom_bridge$datapath),
+             "Please upload a valid barcode file.")
+      )
+      read_csv(input$barcode_custom_bridge$datapath,
+               col_names = c("seq"),
+               n_max = 16)
+      
+    }
+  })
+  
+  barcode_forward_primer <- eventReactive(input$barcode_submit, {
+    if(input$barcode_forward_select != FALSE) {
+      read_tsv(input$barcode_forward_select,
+               col_names = c("id", "primer"), skip = 1)
+    } else {
+      validate(
+        need(!is.null(input$barcode_custom_forward$datapath),
+             "Please upload a valid barcode file.")
+      )
+      read_csv(input$barcode_custom_forward$datapath,
+               col_names = c("primer"))
+    }
+  })
+  
+  barcode_reverse_primer <- eventReactive(input$barcode_submit, {
+    if(input$barcode_reverse_select != FALSE) {
+      read_tsv(input$barcode_reverse_select,
+               col_names = c("id", "primer"), skip = 1)
+    } else {
+      validate(
+        need(!is.null(input$barcode_custom_forward$datapath),
+             "Please upload a valid barcode file.")
+      )
+      read_csv(input$barcode_custom_forward$datapath,
+               col_names = c("primer"))
+    }
+  })
+  
+  barcode_result <- reactive({
+    w_barcodes <- append_barcodes(probe_intersect_final(),
+                                  barcode_bridges(),
+                                  barcodes_uploaded())
+    
+    # add universal primer pair
+    fp <- barcode_forward_primer()$primer[1]
+    rp <- barcode_reverse_primer()$primer[1]
+    
+    w_primers <- w_barcodes %>%
+      mutate(sequence = str_c(fp, sequence))
+    
+    w_primers %>%
+      mutate(sequence = str_c(sequence, rp))
+  })
+  
+  output$barcode_bridge_table <- DT::renderDataTable({
+    bridges <- barcode_bridges()
+    bridges <- bridges %>% dplyr::rename(bridge = seq)
+    
+    DT::datatable(bridges)
+  })
+  
+  output$barcode_table <- DT::renderDataTable({
+    unique_targets <- unique(barcode_result()$refseq)
+    barcodes <- barcodes_uploaded()
+    barcodes <- barcodes[1:length(unique_targets),]
+    
+    display_table <- tibble(refseq = unique_targets,
+                            barcode = barcodes)
+    
+    DT::datatable(display_table)
+  })
+
+  ##############################################
   # Downloading
   ##############################################
   
   download_data <- eventReactive(input$download_choice, {
     if(input$download_choice == 2) {
-      if(input$appended_tf) {
+      if(input$appended_choice == 1) {
         probes <- probes_appended()$appended
         summary <- probes_appended()$master_table %>%
           select(-c(target))
@@ -706,12 +827,19 @@ shinyServer(function(input, output, session) {
           }
         }
         
-        probes <- probes %>%
-          mutate(order_id = str_c(chrom, "_", start, append_info))
+        if(input$download_design_scheme) {
+          # RNA (include the refseq in Order ID)
+          probes <- probes %>%
+            mutate(order_id = str_c(chrom, "_", start, "_", refseq, append_info))
+        } else {
+          # DNA
+          probes <- probes %>%
+            mutate(order_id = str_c(chrom, "_", start, append_info))
+        }
         
         probes %>%
           select(c(order_id, sequence))
-      } else {
+      } else if(input$appended_choice == 3) {
         # base probes are either RNA or DNA
         if(input$download_design_scheme) {
           # RNA
@@ -721,25 +849,49 @@ shinyServer(function(input, output, session) {
           probes <- coord_intersect_final()
         }
         
+        if(input$download_design_scheme) {
+          # RNA (include the refseq in Order ID)
+          probes <- probes %>%
+            mutate(order_id = str_c(chrom, "_", start, "_", refseq))
+        } else {
+          # DNA
+          probes <- probes %>%
+            mutate(order_id = str_c(chrom, "_", start))
+        }
+        
+        probes %>%
+          select(c(order_id, sequence))
+      } else if(input$appended_choice == 2) {
+        probes <- barcode_result()
+        
         probes <- probes %>%
-          mutate(order_id = str_c(chrom, "_", start))
+          mutate(order_id = str_c(chrom, "_", start, "_", refseq))
         
         probes %>%
           select(c(order_id, sequence))
       }
         
     } else if(input$download_choice == 3) {
-      collapse <- function(column) {
-        return(str_c(list(unique(column)), collapse = ","))
+      if(input$appended_choice == 1) {
+        collapse <- function(column) {
+          return(str_c(list(unique(column)), collapse = ","))
+        }
+        
+        probes_appended()$master_table %>%
+          group_by(target) %>%
+          summarise_all(collapse)
+      } else {
+        unique_targets <- unique(barcode_result()$refseq)
+        barcodes <- barcodes_uploaded()
+        
+        tibble(refseq = unique_targets,
+               barcode = barcodes)
       }
       
-      probes_appended()$master_table %>%
-        group_by(target) %>%
-        summarise_all(collapse)
     } else if(input$download_choice == 4) {
-      if(input$appended_tf) {
+      if(input$appended_choice == 1) {
         probes_appended()$appended
-      } else {
+      } else if(input$appended_choice == 3) {
         # base probes are either RNA or DNA
         if(input$download_design_scheme) {
           # RNA
@@ -748,6 +900,8 @@ shinyServer(function(input, output, session) {
           # DNA
           coord_intersect_final()
         }
+      } else if(input$appended_choice == 2) {
+       barcode_result()
       }
     }
   })
