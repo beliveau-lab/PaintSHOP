@@ -5,7 +5,3 @@
 
 aws-credentials.R
 rsconnect/
-
-*.html
-notebooks/
-
