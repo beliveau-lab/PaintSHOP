@@ -3,13 +3,9 @@
 .RData
 .Ruserdata
 
-accessions.txt
-coordinates.bed
 aws-credentials.R
+rsconnect/
 
 *.html
-appending/
 notebooks/
-PaintSHOP/probes
-PaintSHOP/resources
-rsconnect/
+
