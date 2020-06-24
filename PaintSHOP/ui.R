@@ -441,7 +441,7 @@ shinyUI(fluidPage(
          )
         )
       ),
-      tabPanel("Append Barcodes",
+      tabPanel("Append Codebook",
         tags$h1("Description"),
         tags$h4("This tab aims to support the construction of probe sets for users who 
                  want to perform RNA MERFISH experiments:"),
@@ -511,7 +511,7 @@ shinyUI(fluidPage(
                       width = NULL, buttonLabel = "Browse...",
                       placeholder = "No file selected"),
             tags$hr(),
-            actionButton("barcode_submit", label = tags$h2("Append Barcodes"))
+            actionButton("barcode_submit", label = tags$h2("Append Codebook"))
           ),
           mainPanel(
             DT::dataTableOutput("barcode_bridge_table"),
