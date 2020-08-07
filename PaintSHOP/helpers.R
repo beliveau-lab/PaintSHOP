@@ -227,7 +227,7 @@ append_unique <- function(probes, sequences, sequence_type,
       
       # update master table to include ID and sequence appended
       # (I'm appending the 5' -> 3' orientation of the seq)
-      primer_id <- unique_ids[i]
+      primer_id <- unique_targets[i]
       
       master_table_entry = str_c(primer_id, primer, sep = "_")
       
