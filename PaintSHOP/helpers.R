@@ -203,6 +203,7 @@ append_unique <- function(probes, sequences, sequence_type,
   } else {
     unique_targets <<- unique(probes$target)
     unique_sequences <<- unique(sequences$seq)
+    unique_ids <<- unique(sequences)$id
     
     probes_appended_list <- list()
     
@@ -227,7 +228,7 @@ append_unique <- function(probes, sequences, sequence_type,
       
       # update master table to include ID and sequence appended
       # (I'm appending the 5' -> 3' orientation of the seq)
-      primer_id <- unique_targets[i]
+      primer_id <- unique_ids[i]
       
       master_table_entry = str_c(primer_id, primer, sep = "_")
       
