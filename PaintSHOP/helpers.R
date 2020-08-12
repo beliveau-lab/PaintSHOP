@@ -39,7 +39,7 @@ read_probes_refseq <- function(object) {
                              "sequence", "Tm", "on_target",
                              "off_target", "repeat_seq", 
                              "max_kmer", "probe_strand",
-                             "refseq"),
+                             "gene_id", "refseq", "*"),
                delim = "\t"))
 }
 
