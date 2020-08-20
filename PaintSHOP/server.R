@@ -161,9 +161,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$intersect_table <- DT::renderDataTable({
-    probe_table = probe_intersect_final() %>%
-      select(-c("*"))
-    DT::datatable(probe_table)
+    DT::datatable(probe_intersect_final())
   })
   
   observeEvent(input$restore_default, {
