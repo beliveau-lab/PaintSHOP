@@ -34,13 +34,33 @@ read_probes_chrom <- function(object) {
 # -------
 # a tbl_df of the RefSeq probe set selected by the user
 read_probes_refseq <- function(object) {
-  return(vroom(object,
-               col_names = c("chrom", "start", "stop", 
-                             "sequence", "Tm", "on_target",
-                             "off_target", "repeat_seq", 
-                             "max_kmer", "probe_strand",
-                             "gene_id", "refseq", "*"),
-               delim = "\t"))
+
+  result = vroom(object, delim = "\t")
+  
+  # set column names based on probe set type
+  col_names = c()
+  num_cols = dim(result)[2]
+  if (num_cols == 13) {
+
+    # isoform-resolved RNA probe sets
+    col_names = c("chrom", "start", "stop",
+                  "sequence", "Tm", "on_target",
+                  "off_target", "repeat_seq",
+                  "max_kmer", "probe_strand",
+                  "refseq", "transcript_id", "gene_id")
+  
+  } else if (num_cols == 12) {
+    
+    # isoform-flattened RNA probe sets
+    col_names = c("chrom", "start", "stop",
+                  "sequence", "Tm", "on_target",
+                  "off_target", "repeat_seq",
+                  "max_kmer", "probe_strand",
+                  "refseq", "transcripts")
+  }
+  colnames(result) = col_names
+
+  return(result)
 }
 
 # Append the same sequence to all probes in a probe set.
