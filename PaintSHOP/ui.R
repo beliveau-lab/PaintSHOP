@@ -46,14 +46,9 @@ shinyUI(fluidPage(
         tags$br(),
         tags$img(height = 300, width = 1400,
                  src = 'workflow-diagram.png'),
-        tags$h4("If you use PaintSHOP in your research, please cite our pre-print:"),
+        tags$h4("If you use PaintSHOP in your research, please cite our preprint: ", 
+                tags$a("https://doi.org/10.1101/2020.07.05.188797", href = "https://doi.org/10.1101/2020.07.05.188797", target = "_blank")),
         tags$br(),
-        tags$h4(
-          tags$a("PaintSHOP enables the interactive design of transcriptome- and genome-scale oligonucleotide FISH experiments", 
-                 href = "https://doi.org/10.1101/2020.07.05.188797",
-                 target = "_blank"),
-          style="text-align: center;"
-        )
       ),
       tabPanel("RNA Probe Design",
         sidebarLayout(
