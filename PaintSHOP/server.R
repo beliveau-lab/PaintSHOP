@@ -788,7 +788,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$barcode_table <- DT::renderDataTable({
-    unique_targets <- unique(barcode_result()$refseq)
+    unique_targets <- base::unique(barcode_result()$refseq)
     barcodes <- barcodes_uploaded()
     barcodes <- barcodes[1:length(unique_targets),]
     

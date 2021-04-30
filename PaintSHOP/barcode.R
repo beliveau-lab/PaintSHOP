@@ -95,7 +95,7 @@ add_bridges <- function(probes, bridges, indices) {
 # side or 3' side gets 2 instead of 1 is also random.
 append_barcodes <- function(probes, bridges, barcodes) {
   # first grab out list of unique IDs
-  unique_IDs <- unique(probes$refseq)
+  unique_IDs <- base::unique(probes$refseq)
   
   # Check to make sure that there are enough barcodes
   validate(
