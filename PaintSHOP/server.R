@@ -83,12 +83,14 @@ shinyServer(function(input, output, session) {
     if(input$repeat_seq) {
       probe_intersect() %>%
         filter(off_target <= input$off_target,
-               max_kmer <= input$max_kmer)
+               max_kmer <= input$max_kmer,
+               prob >= input$min_prob)
     } else {
       probe_intersect() %>%
         filter(repeat_seq != 1,
                off_target <= input$off_target,
-               max_kmer <= input$max_kmer)
+               max_kmer <= input$max_kmer,
+               prob >= input$min_prob)
     }
   })
   
@@ -168,6 +170,7 @@ shinyServer(function(input, output, session) {
     shinyjs::reset("repeat_seq")
     shinyjs::reset("off_target")
     shinyjs::reset("max_kmer")
+    shinyjs::reset("min_prob")
   })
   
   ##############################################
@@ -270,12 +273,14 @@ shinyServer(function(input, output, session) {
     if(input$repeat_seq_coord) {
       coord_intersect() %>%
         filter(off_target <= input$off_target_coord,
-               max_kmer <= input$max_kmer_coord)
+               max_kmer <= input$max_kmer_coord,
+               prob >= input$min_prob_coord)
     } else {
       coord_intersect() %>%
         filter(repeat_seq != 1,
                off_target <= input$off_target_coord,
-               max_kmer <= input$max_kmer_coord)
+               max_kmer <= input$max_kmer_coord,
+               prob >= input$min_prob_coord)
     }
   })
   
@@ -374,6 +379,7 @@ shinyServer(function(input, output, session) {
     shinyjs::reset("repeat_seq_coord")
     shinyjs::reset("off_target_coord")
     shinyjs::reset("max_kmer_coord")
+    shinyjs::reset("min_prob_coord")
   })
   
   ##############################################
