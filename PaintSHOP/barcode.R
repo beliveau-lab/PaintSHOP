@@ -44,10 +44,10 @@ collect_indices <- function(barcode) {
 # side or 3' side gets 2 instead of 1 is also random.
 add_bridges <- function(probes, bridges, indices) {
   # choose which bridge won't be used, "randomly" for each probe
-  dropped_bridge <- sample(c(1, 2, 3, 4), nrow(probes), replace = TRUE)
+  dropped_bridge <- sample(c(1, 2, 3, 4), base::nrow(probes), replace = TRUE)
   
   # loop over probes, adding bridges based on indices derived from barcode
-  for (i in 1:nrow(probes)) {
+  for (i in 1:base::nrow(probes)) {
     # drop the bridge
     curr_indices <- indices[-dropped_bridge[i]]
     
@@ -99,7 +99,7 @@ append_barcodes <- function(probes, bridges, barcodes) {
   
   # Check to make sure that there are enough barcodes
   validate(
-    need(nrow(barcodes) >= length(unique_IDs),
+    need(base::nrow(barcodes) >= length(unique_IDs),
          "There are not enough barcodes for the number of targets with probes.")
   )
   
