@@ -15,7 +15,7 @@ read_probes_chrom <- function(object) {
   return(vroom(object,
                col_names = c("chrom", "start", "stop", 
                              "sequence", "Tm", "on_target",
-                             "off_target", "repeat_seq", 
+                             "off_target", "repeat_seq", "prob", 
                              "max_kmer", "probe_strand"),
                delim = "\t"))
 }
@@ -40,21 +40,21 @@ read_probes_refseq <- function(object) {
   # set column names based on probe set type
   col_names = c()
   num_cols = dim(result)[2]
-  if (num_cols == 13) {
+  if (num_cols == 14) {
 
     # isoform-resolved RNA probe sets
     col_names = c("chrom", "start", "stop",
                   "sequence", "Tm", "on_target",
-                  "off_target", "repeat_seq",
+                  "off_target", "repeat_seq", "prob",
                   "max_kmer", "probe_strand",
                   "refseq", "transcript_id", "gene_id")
   
-  } else if (num_cols == 12) {
+  } else if (num_cols == 13) {
     
     # isoform-flattened RNA probe sets
     col_names = c("chrom", "start", "stop",
                   "sequence", "Tm", "on_target",
-                  "off_target", "repeat_seq",
+                  "off_target", "repeat_seq", "prob",
                   "max_kmer", "probe_strand",
                   "refseq", "transcripts")
   }
