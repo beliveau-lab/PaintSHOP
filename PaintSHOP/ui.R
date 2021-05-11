@@ -12,7 +12,7 @@ library(shinyBS)
 # Define UI for application
 shinyUI(fluidPage(
 
-    tags$head(includeHTML(("google-analytics.html"))),
+    tags$head(includeHTML(("header.html"))),
   
     theme = shinytheme("flatly"),
     useShinyjs(),
