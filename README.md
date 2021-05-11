@@ -3,6 +3,7 @@
 </div>
 
 # PaintSHOP
+
 Shiny App for interactive oligo probe design.
 
-Visit at:  https://oligo.shinyapps.io/paintshop/
+Visit the PaintSHOP homepage at:  https://paintshop.io
