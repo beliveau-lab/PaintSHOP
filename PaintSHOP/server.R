@@ -762,10 +762,10 @@ shinyServer(function(input, output, session) {
                col_names = c("id", "primer"), skip = 1)
     } else {
       validate(
-        need(!is.null(input$barcode_custom_forward$datapath),
+        need(!is.null(input$barcode_custom_reverse$datapath),
              "Please upload a valid barcode file.")
       )
-      read_csv(input$barcode_custom_forward$datapath,
+      read_csv(input$barcode_custom_reverse$datapath,
                col_names = c("primer"))
     }
   })
