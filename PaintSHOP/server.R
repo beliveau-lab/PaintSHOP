@@ -780,10 +780,10 @@ shinyServer(function(input, output, session) {
     rp <- barcode_reverse_primer()$primer[1]
     
     w_primers <- w_barcodes %>%
-      mutate(sequence = str_c(fp, sequence))
+      mutate(sequence = str_c(fp, sequence, sep = "TTT"))
     
     w_primers %>%
-      mutate(sequence = str_c(sequence, rp))
+      mutate(sequence = str_c(sequence, rp, sep = "TTT"))
   })
   
   output$barcode_bridge_table <- DT::renderDataTable({
