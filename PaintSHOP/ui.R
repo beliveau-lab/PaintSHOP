@@ -56,6 +56,7 @@ shinyUI(fluidPage(
             selectInput("probeset", "Choose Probe Set:", c(
               "hg38 newBalance" = "v1.2/probes/refseq/hg38_refseq_newBalance.tsv",
               "hg19 newBalance" = "v1.2/probes/refseq/hg19_refseq_newBalance.tsv",
+              "chm13 newBalance" = "v1.2/probes/refseq/chm13_refseq_newBalance.tsv",
               "mm10 newBalance" = "v1.2/probes/refseq/mm10_refseq_newBalance.tsv",
               "mm9 newBalance" = "v1.2/probes/refseq/mm9_refseq_newBalance.tsv",
               "dm6 newBalance" = "v1.2/probes/refseq/dm6_refseq_newBalance.tsv",
@@ -73,6 +74,7 @@ shinyUI(fluidPage(
               "iFISH4U 40-mer hg19" = "v1.2/probes/refseq/iFISH4U_refseq_newBalance.tsv",
               "hg38 newBalance (isoform-flattened)" = "v1.2/probes/iso/hg38_iso_newBalance.tsv",
               "hg19 newBalance (isoform-flattened)" = "v1.2/probes/iso/hg19_iso_newBalance.tsv",
+              "chm13 newBalance (isoform-flattened)" = "v1.2/probes/iso/chm13_iso_newBalance.tsv",
               "mm10 newBalance (isoform-flattened)" = "v1.2/probes/iso/mm10_iso_newBalance.tsv",
               "mm9 newBalance (isoform-flattened)" = "v1.2/probes/iso/mm9_iso_newBalance.tsv",
               "dm6 newBalance (isoform-flattened)" = "v1.2/probes/iso/dm6_iso_newBalance.tsv",
@@ -177,6 +179,7 @@ shinyUI(fluidPage(
            selectInput("probeset_coord", "Choose Probe Set:",
                        c("hg38 newBalance" = "v1.2/probes/all/hg38_all_newBalance",
                          "hg19 newBalance" = "v1.2/probes/all/hg19_all_newBalance",
+                         "chm13 newBalance" = "v1.2/probes/all/chm13_all_newBalance",
                          "mm10 newBalance" = "v1.2/probes/all/mm10_all_newBalance",
                          "mm9 newBalance" = "v1.2/probes/all/mm9_all_newBalance",
                          "dm6 newBalance" = "v1.2/probes/all/dm6_all_newBalance",
